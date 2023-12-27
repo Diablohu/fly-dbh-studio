@@ -104,6 +104,10 @@ module.exports = {
                 },
             ],
         },
+        node: {
+            // provides the global variable named "global"
+            global: true,
+        },
     }),
     internalLoaderOptions: {
         'less-loader': {
@@ -144,8 +148,8 @@ module.exports = {
         __SVG_ICON_PACK__: JSON.stringify(
             fs.readFileSync(
                 path.resolve(__dirname, './src/assets/symbol-defs.svg'),
-                'utf-8'
-            )
+                'utf-8',
+            ),
         ).replace(/\n/g, ''),
     },
     devPort: 3088,
