@@ -1,0 +1,68 @@
+@import (less) '~normalize.css/normalize.css';
+@import '~vars.less';
+
+// extra resets ---------------------------------------------------------------
+
+*,
+*:before,
+*:after {
+    box-sizing: inherit;
+}
+
+button,
+input,
+optgroup,
+option,
+select,
+textarea {
+    font-family: inherit;
+}
+
+input,
+textarea {
+    user-select: auto;
+}
+
+// global styles --------------------------------------------------------------
+
+html,
+body {
+    height: 100%;
+    height: -webkit-fill-available;
+}
+html {
+    font-family: Roboto, 'SF Pro Display', 'SF Pro Icons', 'Helvetica Neue',
+        'Helvetica', 'Arial', 'Microsoft YaHei UI', 'Microsoft YaHei',
+        'Hiragino Sans GB', sans-serif;
+    &[lang^='ja'] {
+        font-family: 'Noto Sans JP', 'Lucida Grande',
+            'Hiragino Kaku Gothic ProN', Meiryo, Roboto, sans-serif;
+    }
+
+    box-sizing: border-box;
+    color: @color-base;
+    font-size: @root-font-size;
+    text-decoration-skip-ink: auto;
+    text-underline-position: under;
+}
+body {
+    font-size: @base-font-size;
+    line-height: 1.5em;
+    /* https://hugogiraudel.com/2020/05/18/using-calc-to-figure-out-optimal-line-height/ */
+    line-height: calc(2px + 2ex + 2px);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+}
+
+:first-child {
+    margin-top: 0;
+}
+:last-child {
+    margin-bottom: 0;
+}
+
+[disabled] {
+    cursor: default;
+    pointer-events: none;
+    opacity: 0.5;
+}

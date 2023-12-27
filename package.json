@@ -1,0 +1,68 @@
+{
+    "name": "fly-dbh-studio",
+    "private": true,
+    "version": "1.0.0",
+    "description": "Live streaming helpers for FLY-DBH",
+    "author": {
+        "name": "diablohu"
+    },
+    "homepage": "https://github.com/cmux/koot#readme",
+    "license": "none",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/cmux/koot.git"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "scripts": {
+        "start": "koot-start",
+        "build": "koot-build",
+        "dev": "koot-dev",
+        "analyze": "koot-analyze",
+        "eslint": "eslint \"src/**/*.+(js|jsx)\"",
+        "check-types": "tsc --noEmit",
+        "prepare": "husky install",
+        "up": "npx npm-check-updates -i"
+    },
+    "dependencies": {
+        "axios": "^1.6.3",
+        "bind-event": "^1.1.2",
+        "classnames": "^2.4.0",
+        "koot": "^0.15.13"
+    },
+    "devDependencies": {
+        "@types/classnames": "^2.3.0",
+        "autoprefixer": "^10.4.16",
+        "babel-eslint": "^10.1.0",
+        "cssnano": "^6.0.2",
+        "eslint": "^8.56.0",
+        "eslint-config-koot": "^4.0.0",
+        "husky": "^8.0.3",
+        "koot-electron": "^0.15.13",
+        "lint-staged": "^15.2.0",
+        "normalize.css": "^8.0.1",
+        "prettier": "^3.1.1",
+        "prettier-eslint": "^16.2.0",
+        "redux-logger": "^3.0.6",
+        "svg-url-loader": "^8.0.0"
+    },
+    "bugs": {
+        "url": "https://github.com/cmux/koot/issues"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
+    },
+    "lint-staged": {
+        "*.{js,jsx,cjs,mjs,ts,tsx}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "*.{json,md,css,less,sass,scss}": [
+            "prettier --write"
+        ]
+    },
+    "koot": {}
+}
