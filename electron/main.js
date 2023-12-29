@@ -64,12 +64,12 @@ const main = async (createWindowOptions = {}) => {
     // code. You can also put them in separate files and require them here.
 };
 
-console.log(123, 321, '_-_-_-_-_-_-_-');
+// console.log(123, 321, '_-_-_-_-_-_-_-_');
 
 main({
-    // webPreferences: {
-    //     preload: path.join(app.getAppPath(), 'preload.js'),
-    // },
-    nodeIntegration: true,
-    contextIsolation: false,
+    webPreferences: {
+        // preload: path.join(app.getAppPath(), 'preload.js'),
+        nodeIntegration: true,
+        contextIsolation: false,
+    },
 });
