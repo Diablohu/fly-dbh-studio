@@ -40,3 +40,4 @@ node_modules/
 /logs/
 /dist/
 .husky
+/electron/logs

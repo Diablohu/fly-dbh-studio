@@ -43,6 +43,9 @@ module.exports = {
     webApp: {
         themeColor: '#0092f5',
     },
+    electron: {
+        main: path.resolve(__dirname, './electron/main.js'),
+    },
 
     /**************************************************************************
      * 服务器端设置 & 生命周期

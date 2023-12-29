@@ -28,8 +28,8 @@
     "dependencies": {
         "axios": "^1.6.3",
         "bind-event": "^1.1.2",
-        "classnames": "^2.4.0",
-        "koot": "^0.15.13"
+        "classnames": "^2.5.0",
+        "koot": "^0.15.14"
     },
     "devDependencies": {
         "@types/classnames": "^2.3.0",
@@ -39,7 +39,7 @@
         "eslint": "^8.56.0",
         "eslint-config-koot": "^4.0.0",
         "husky": "^8.0.3",
-        "koot-electron": "^0.15.13",
+        "koot-electron": "^0.15.14",
         "lint-staged": "^15.2.0",
         "normalize.css": "^8.0.1",
         "prettier": "^3.1.1",
