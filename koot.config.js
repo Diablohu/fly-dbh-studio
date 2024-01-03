@@ -10,6 +10,7 @@ require('koot/typedef');
 
 const fs = require('fs');
 const path = require('path');
+const buildCompanionServer = require('./companion-server/build');
 
 /** @type {AppConfig} */
 module.exports = {
@@ -128,6 +129,9 @@ module.exports = {
         },
     },
     staticCopyFrom: path.resolve(__dirname, './src/assets/public'),
+    afterBuild: async (appConfig) => {
+        await buildCompanionServer(appConfig);
+    },
 
     /**************************************************************************
      * 开发环境 & 开发设置

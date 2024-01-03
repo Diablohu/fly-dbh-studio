@@ -1,5 +1,9 @@
 const { app, BrowserWindow } = require('electron');
 const { createWindow } = require('koot-electron');
+const os = require('os');
+const storage = require('electron-json-storage');
+
+const companionServerMain = require('../companion-server/main');
 
 // ============================================================================
 
@@ -36,6 +40,13 @@ const { createWindow } = require('koot-electron');
 // ============================================================================
 
 const main = async (createWindowOptions = {}) => {
+    // 确定用户数据存储路径
+    storage.setDataPath(os.tmpdir());
+
+    // 启动 Companion Server
+    await companionServerMain(createWindowOptions);
+
+    // 启动 Renderer
     function doCreateWindow() {
         createWindow(createWindowOptions);
     }
@@ -59,9 +70,6 @@ const main = async (createWindowOptions = {}) => {
         // to stay active until the user quits explicitly with Cmd + Q
         if (process.platform !== 'darwin') app.quit();
     });
-
-    // In this file you can include the rest of your app's specific main process
-    // code. You can also put them in separate files and require them here.
 };
 
 // console.log(123, 321, '_-_-_-_-_-_-_-_');
