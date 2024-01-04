@@ -1,4 +1,5 @@
 const path = require('path');
+const { webpackEntryName } = require('../index');
 
 const createConfig = () => {
     /** 当前是否是开发环境 */
@@ -15,7 +16,7 @@ const createConfig = () => {
         },
         plugins: [],
         entry: {
-            main: [path.resolve(__dirname, 'main.js')],
+            [webpackEntryName]: [path.resolve(__dirname, 'main.js')],
         },
         module: {
             rules: [

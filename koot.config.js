@@ -10,6 +10,7 @@ require('koot/typedef');
 
 const fs = require('fs');
 const path = require('path');
+const getDirDevTmp = require('koot/libs/get-dir-dev-tmp');
 const buildCompanionServer = require('./companion-server/build');
 
 /** @type {AppConfig} */
@@ -129,7 +130,18 @@ module.exports = {
         },
     },
     staticCopyFrom: path.resolve(__dirname, './src/assets/public'),
+    beforeBuild: async (appConfig) => {
+        // 清理开发环境临时目录
+        if (process.env.WEBPACK_BUILD_ENV === 'dev') {
+            const dir = getDirDevTmp('electron');
+            if (fs.existsSync(dir)) {
+                fs.rmdirSync(dir, { recursive: true });
+            }
+        }
+    },
     afterBuild: async (appConfig) => {
+        // 构建 Companion Server
+        // 相关信息详见 `/companion-server/README.md`
         await buildCompanionServer(appConfig);
     },
 

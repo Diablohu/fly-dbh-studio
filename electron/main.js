@@ -2,8 +2,16 @@ const { app, BrowserWindow } = require('electron');
 const { createWindow } = require('koot-electron');
 const os = require('os');
 const storage = require('electron-json-storage');
+const createDebug = require('debug');
 
 const companionServerMain = require('../companion-server/main');
+
+// ============================================================================
+
+const debug = createDebug('⚛️ Electron Main');
+debug.useColors = true;
+debug.color = 6;
+debug.enabled = process.env.WEBPACK_BUILD_ENV === 'dev';
 
 // ============================================================================
 
@@ -40,14 +48,23 @@ const companionServerMain = require('../companion-server/main');
 // ============================================================================
 
 const main = async (createWindowOptions = {}) => {
+    // eslint-disable-next-line no-console
+    console.log('\n');
+
     // 确定用户数据存储路径
+    debug('Setting user data path...');
     storage.setDataPath(os.tmpdir());
 
     // 启动 Companion Server
+    // 相关信息详见 `/companion-server/README.md`
+    debug('Launching Companion Server...');
     await companionServerMain(createWindowOptions);
 
     // 启动 Renderer
     function doCreateWindow() {
+        // eslint-disable-next-line no-console
+        console.log('');
+        debug('Launching Renderer...');
         createWindow(createWindowOptions);
     }
 

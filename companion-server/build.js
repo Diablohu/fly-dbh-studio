@@ -1,3 +1,17 @@
+// const path = require('path');
+// const { utilityProcess } = require('electron');
+const webpack = require('webpack');
+const getDirDevTmp = require('koot/libs/get-dir-dev-tmp');
+
+const { debug } = require('./index.js');
+const webpackConfig = require('./src/webpack.config');
+
+// ============================================================================
+
+let resolved = false;
+
+// ============================================================================
+
 /**
  * 在 Koot `afterBuild` 生命周期执行: 生成 Companion Server JS 文件
  * - 开发环境: 输出文件到临时目录
@@ -5,7 +19,45 @@
  */
 const buildCompanionServer = (appConfig) =>
     new Promise((resolve, reject) => {
-        resolve();
+        debug('Building...');
+
+        if (process.env.WEBPACK_BUILD_ENV === 'dev') {
+            webpackConfig.output.path = getDirDevTmp('electron');
+        }
+
+        try {
+            webpack(webpackConfig, (err, stats) => {
+                if (err) return reject(err);
+
+                const info = stats.toJson();
+
+                if (stats.hasWarnings() || stats.hasErrors()) {
+                    // eslint-disable-next-line no-console
+                    console.log(
+                        stats.toString({
+                            chunks: false,
+                            colors: true,
+                        }),
+                    );
+                    if (stats.hasWarnings()) console.warn(info.warnings);
+                    if (stats.hasErrors()) console.warn(info.errors);
+                }
+
+                if (!resolved) {
+                    debug(
+                        `Build complete! Files emitted to ${webpackConfig.output.path}`,
+                    );
+                    // eslint-disable-next-line no-console
+                    console.log('\n');
+                }
+                resolved = true;
+                resolve(stats);
+            });
+        } catch (err) {
+            debug(`Build failed!`);
+            console.error(err);
+            reject(err);
+        }
     });
 
 module.exports = buildCompanionServer;

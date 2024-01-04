@@ -1,74 +1,88 @@
-// const path = require('path');
+const fs = require('fs-extra');
+const path = require('path');
 const { utilityProcess } = require('electron');
-// const webpack = require('webpack');
 const getDirDevTmp = require('koot/libs/get-dir-dev-tmp');
+const sleep = require('koot/utils/sleep');
 
-const companionServerWebpackConfig = require('./src/webpack.config');
+const { debug, webpackEntryName } = require('./index.js');
 
-const main = async (createWindowOptions) => {
-    // 等待 Companion Server 进程文件生成
-    console.log('🛸 Companion Server: Waiting for JS file...');
+// ============================================================================
 
-    console.log('🛸 Companion Server: Starting');
+let resolved = false;
+let companionServerProcess;
 
-    if (process.env.WEBPACK_BUILD_ENV === 'dev') {
-        companionServerWebpackConfig.output.path = getDirDevTmp('electron');
+// ============================================================================
 
-        let child;
-        // let launched = false;
+const main = async (createWindowOptions) =>
+    new Promise(async (resolve, reject) => {
+        if (process.env.WEBPACK_BUILD_ENV === 'dev') {
+            // eslint-disable-next-line no-console
+            console.log('');
+        }
 
-        companionServerWebpackConfig.plugins.push({
-            // apply: (compiler) => {
-            //     compiler.hooks.watchRun.tap(
-            //         'CompanionServerPlugin',
-            //         (compilation) => {
-            //             // console.log('__watchRun');
-            //             if (child) {
-            //                 // debug('server reloading...');
-            //                 child.kill();
-            //                 child = undefined;
-            //             }
-            //         },
-            //     );
-            //     compiler.hooks.afterEmit.tap(
-            //         'CompanionServerPlugin',
-            //         (compilation) => {
-            //             // console.log('__afterEmit');
-            //             if (child) return;
-            //             // debug(
-            //             //     launched ? 'server started!' : 'server reloaded!'
-            //             // );
-            //             // launched = true;
-            //             // console.log('\n\n');
-            //             child = utilityProcess.fork(
-            //                 path.resolve(
-            //                     companionServerWebpackConfig.output.path,
-            //                     'main.cjs',
-            //                 ),
-            //                 {
-            //                     stdio: 'inherit',
-            //                     serviceName: 'fly-dbh-studio-companion-server',
-            //                 },
-            //             );
-            //             // child.on('close', (code) => {
-            //             //     console.log(
-            //             //         `child process exited with code ${code}`
-            //             //     );
-            //             // });
-            //         },
-            //     );
-            // },
+        const fileToWatch = path.resolve(
+            getDirDevTmp('electron'),
+            `${webpackEntryName}.cjs`,
+        );
+
+        const launchCompanionServer = async (type) => {
+            if (process.env.WEBPACK_BUILD_ENV === 'dev') {
+                switch (type) {
+                    case 'update': {
+                        // eslint-disable-next-line no-console
+                        console.log('');
+                        debug('Updated! Relaunching...');
+                        break;
+                    }
+                    default:
+                        debug('Launching...');
+                }
+            }
+
+            if (companionServerProcess) {
+                companionServerProcess.kill();
+                await sleep(1000);
+            }
+
+            companionServerProcess = utilityProcess.fork(fileToWatch, {
+                stdio: 'inherit',
+                serviceName: 'fly-dbh-studio-companion-server',
+            });
+            companionServerProcess.on('exit', () => {
+                companionServerProcess = undefined;
+            });
+            companionServerProcess.on('spawn', async () => {
+                if (!resolved) {
+                    resolved = true;
+                    await sleep(1000);
+                    resolve();
+                }
+            });
+        };
+        let launchCompanionServerTimeout;
+
+        if (fs.existsSync(fileToWatch)) {
+            await launchCompanionServer();
+        } else {
+            if (process.env.WEBPACK_BUILD_ENV === 'dev') {
+                // 等待 Companion Server 进程文件生成
+                debug('Waiting for building...');
+                // eslint-disable-next-line no-console
+                console.log('');
+            }
+        }
+
+        fs.watchFile(fileToWatch, { interval: 1000 }, async (curr, prev) => {
+            // console.log(curr, prev);
+            if (!fs.existsSync(fileToWatch) || !curr.size) return;
+            clearTimeout(launchCompanionServerTimeout);
+            launchCompanionServerTimeout = setTimeout(
+                () => launchCompanionServer(!prev.size ? '' : 'update'),
+                100,
+            );
         });
-        console.log(companionServerWebpackConfig);
-        // webpack(companionServerWebpackConfig);
-    } else {
-        // config.plugins.push(new CleanWebpackPlugin());
-        // config.plugins.push(
-        //     new CopyPlugin({
-        //         patterns: [path.resolve(__dirname, './build-copy')],
-        //     }),
-        // );
-    }
-};
+    });
 
 module.exports = main;
+
+// ============================================================================

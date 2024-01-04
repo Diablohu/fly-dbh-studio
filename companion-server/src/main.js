@@ -1,5 +1,8 @@
+const { debug } = require('../index.js');
+
 async function main() {
-    console.log('🛸 Companion Server: Started');
+    debug('Listening on port 8081');
+    debug('Hello~~~');
 }
 
 main().catch((err) => {
