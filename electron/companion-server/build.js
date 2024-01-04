@@ -21,9 +21,7 @@ const buildCompanionServer = () =>
     new Promise((resolve, reject) => {
         debug('Building...');
 
-        if (process.env.WEBPACK_BUILD_ENV === 'dev') {
-            webpackConfig.output.path = getElectronFilesFolder();
-        }
+        webpackConfig.output.path = getElectronFilesFolder();
 
         try {
             webpack(webpackConfig, (err, stats) => {

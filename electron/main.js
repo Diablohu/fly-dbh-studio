@@ -3,7 +3,7 @@
 const os = require('node:os');
 const { promisify } = require('node:util');
 const path = require('node:path');
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const { createWindow } = require('koot-electron');
 const storage = require('electron-json-storage');
 const createDebug = require('debug');
@@ -79,6 +79,26 @@ const main = async (createWindowOptions = {}) => {
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
     app.whenReady().then(() => {
+        [
+            'getDefaultDataPath',
+            'setDataPath',
+            'getDataPath',
+            'get',
+            'getSync',
+            'getMany',
+            'getAll',
+            'set',
+            'has',
+            'keys',
+            'remove',
+            'clear',
+        ].forEach((key) => {
+            ipcMain.handle(`storage:${key}`, async (...args) => {
+                const result = await promisify(storage[key])(...args);
+                return result;
+            });
+        });
+
         doCreateWindow();
 
         app.on('activate', function () {
@@ -99,7 +119,7 @@ const main = async (createWindowOptions = {}) => {
 main({
     webPreferences: {
         preload: path.join(app.getAppPath(), 'preload.js'),
-        nodeIntegration: true,
-        contextIsolation: false,
+        // nodeIntegration: true,
+        // contextIsolation: false,
     },
 });

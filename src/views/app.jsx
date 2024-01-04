@@ -1,8 +1,8 @@
-import { StrictMode } from 'react';
+import { StrictMode, useEffect } from 'react';
 import { extend } from 'koot';
-import os from 'node:os';
+// import os from 'node:os';
 import classNames from 'classnames';
-import storage from 'electron-json-storage';
+// import storage from 'electron-json-storage';
 
 import Nav from '@components/nav';
 
@@ -13,10 +13,10 @@ import styles from './app.module.less';
 const App = extend({
     styles,
 })(({ className, children, location, ...props }) => {
-    storage.setDataPath(os.tmpdir());
-    storage.getAll((error, data) => {
-        console.log(123, error, data);
-    });
+    // storage.setDataPath(os.tmpdir());
+    useEffect(async () => {
+        console.log(await window.electronStorage.getAll());
+    }, []);
     return (
         <StrictMode>
             <div
