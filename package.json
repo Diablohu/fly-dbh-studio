@@ -26,23 +26,23 @@
         "up": "npx npm-check-updates -i"
     },
     "dependencies": {
-        "axios": "^1.6.3",
+        "axios": "^1.6.4",
         "bind-event": "^1.1.2",
         "classnames": "^2.5.1",
         "debug": "^4.3.4",
         "electron-json-storage": "^4.6.0",
-        "koot": "^0.15.14"
+        "koot": "^0.15.15"
     },
     "devDependencies": {
         "@types/classnames": "^2.3.0",
         "autoprefixer": "^10.4.16",
         "babel-eslint": "^10.1.0",
         "clean-webpack-plugin": "^4.0.0",
-        "cssnano": "^6.0.2",
+        "cssnano": "^6.0.3",
         "eslint": "^8.56.0",
         "eslint-config-koot": "^4.0.0",
         "husky": "^8.0.3",
-        "koot-electron": "^0.15.14",
+        "koot-electron": "^0.15.15",
         "lint-staged": "^15.2.0",
         "normalize.css": "^8.0.1",
         "prettier": "^3.1.1",
@@ -68,6 +68,6 @@
         ]
     },
     "koot": {
-        "version": "0.15.14"
+        "version": "0.15.15"
     }
 }

@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 
 const webpack = require('webpack');
-const getDirDevTmp = require('koot/libs/get-dir-dev-tmp');
+const { getElectronFilesFolder } = require('koot-electron');
 
 const { debug } = require('./index.js');
 const webpackConfig = require('./src/webpack.config');
@@ -17,12 +17,12 @@ let resolved = false;
  * - 开发环境: 输出文件到临时目录
  * - 生产环境: 输出文件到项目 dist 目录下的子目录
  */
-const buildCompanionServer = (appConfig) =>
+const buildCompanionServer = () =>
     new Promise((resolve, reject) => {
         debug('Building...');
 
         if (process.env.WEBPACK_BUILD_ENV === 'dev') {
-            webpackConfig.output.path = getDirDevTmp('electron');
+            webpackConfig.output.path = getElectronFilesFolder();
         }
 
         try {

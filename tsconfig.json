@@ -30,6 +30,8 @@
             "@constants/*": ["./src/constants/*"],
             "@store": ["./src/store"],
             "@store/*": ["./src/store/*"],
+            "@utils": ["./src/utils"],
+            "@utils/*": ["./src/utils/*"],
             "@views": ["./src/views"],
             "@views/*": ["./src/views/*"],
             "@server": ["./src/server"],

@@ -5,7 +5,7 @@ const path = require('path');
 const { promisify } = require('util');
 const { utilityProcess } = require('electron');
 const storage = require('electron-json-storage');
-const getDirDevTmp = require('koot/libs/get-dir-dev-tmp');
+const { getElectronFilesFolder } = require('koot-electron');
 const sleep = require('koot/utils/sleep');
 
 const { debug, webpackEntryName, portTypes } = require('./index.js');
@@ -17,14 +17,14 @@ let companionServerProcess;
 
 // ============================================================================
 
-const main = async (createWindowOptions) =>
+const runCompanionServer = async (createWindowOptions) =>
     new Promise(async (resolve, reject) => {
         if (process.env.WEBPACK_BUILD_ENV === 'dev') {
             console.log('');
         }
 
         const fileToWatch = path.resolve(
-            getDirDevTmp('electron'),
+            getElectronFilesFolder(),
             `${webpackEntryName}.cjs`,
         );
 
@@ -113,6 +113,6 @@ const main = async (createWindowOptions) =>
         });
     });
 
-module.exports = main;
+module.exports = runCompanionServer;
 
 // ============================================================================

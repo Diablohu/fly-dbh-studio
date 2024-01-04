@@ -10,8 +10,8 @@ require('koot/typedef');
 
 const fs = require('fs');
 const path = require('path');
-const getDirDevTmp = require('koot/libs/get-dir-dev-tmp');
-const buildCompanionServer = require('./companion-server/build');
+const { getElectronFilesFolder } = require('koot-electron');
+const buildCompanionServer = require('./electron/companion-server/build');
 
 /** @type {AppConfig} */
 module.exports = {
@@ -130,19 +130,16 @@ module.exports = {
         },
     },
     staticCopyFrom: path.resolve(__dirname, './src/assets/public'),
-    beforeBuild: async (appConfig) => {
-        // 清理开发环境临时目录
-        if (process.env.WEBPACK_BUILD_ENV === 'dev') {
-            const dir = getDirDevTmp('electron');
-            if (fs.existsSync(dir)) {
-                fs.rmdirSync(dir, { recursive: true });
-            }
-        }
-    },
     afterBuild: async (appConfig) => {
         // 构建 Companion Server
         // 相关信息详见 `/companion-server/README.md`
         await buildCompanionServer(appConfig);
+
+        // 复制其他文件
+        await fs.promises.copyFile(
+            path.resolve(__dirname, './electron/preload.js'),
+            path.resolve(getElectronFilesFolder(), './preload.js'),
+        );
     },
 
     /**************************************************************************
@@ -159,6 +156,7 @@ module.exports = {
         '@routes': path.resolve('./src/routes'),
         '@server': path.resolve('./src/server'),
         '@store': path.resolve('./src/store'),
+        '@utils': path.resolve('./src/utils'),
         '@views': path.resolve('./src/views'),
         '~vars.less': path.resolve('./src/constants/less/_all.less'),
         '@types': path.resolve('./types'),

@@ -51,7 +51,7 @@ storage.rejectors = {};
 
 async function main() {
     debug('Listening on port 8081');
-    debug('Hello~~~');
+    debug('Hello~~~~');
 
     debug(await storage('getAll'));
     await storage('set', 'AAA', new Date().toLocaleString());

@@ -1,17 +1,19 @@
 /* eslint-disable no-console */
 
+const os = require('node:os');
+const { promisify } = require('node:util');
+const path = require('node:path');
 const { app, BrowserWindow } = require('electron');
 const { createWindow } = require('koot-electron');
-const os = require('os');
-const { promisify } = require('util');
 const storage = require('electron-json-storage');
 const createDebug = require('debug');
 
-const companionServerMain = require('../companion-server/main');
+const runCompanionServer = require('./companion-server/process');
 
 // ============================================================================
 
-const debug = createDebug('⚛️ Electron Main');
+// ⚛️
+const debug = createDebug('Electron Main');
 debug.useColors = true;
 debug.color = 6;
 debug.enabled = process.env.WEBPACK_BUILD_ENV === 'dev';
@@ -57,14 +59,14 @@ const main = async (createWindowOptions = {}) => {
     debug('Setting user data path...');
     storage.setDataPath(os.tmpdir());
 
-    console.log(await promisify(storage.getAll)());
+    // console.log(await promisify(storage.getAll)());
     await promisify(storage.set)('AAA', { a: 'b' });
-    console.log(await promisify(storage.getAll)());
+    // console.log(await promisify(storage.getAll)());
 
     // 启动 Companion Server
     // 相关信息详见 `/companion-server/README.md`
     debug('Launching Companion Server...');
-    await companionServerMain(createWindowOptions);
+    await runCompanionServer(createWindowOptions);
 
     // 启动 Renderer
     function doCreateWindow() {
@@ -94,11 +96,9 @@ const main = async (createWindowOptions = {}) => {
     });
 };
 
-// console.log(123, 321, '_-_-_-_-_-_-_-_');
-
 main({
     webPreferences: {
-        // preload: path.join(app.getAppPath(), 'preload.js'),
+        preload: path.join(app.getAppPath(), 'preload.js'),
         nodeIntegration: true,
         contextIsolation: false,
     },
