@@ -1,5 +1,5 @@
-// const path = require('path');
-// const { utilityProcess } = require('electron');
+/* eslint-disable no-console */
+
 const webpack = require('webpack');
 const getDirDevTmp = require('koot/libs/get-dir-dev-tmp');
 
@@ -32,8 +32,7 @@ const buildCompanionServer = (appConfig) =>
                 const info = stats.toJson();
 
                 if (stats.hasWarnings() || stats.hasErrors()) {
-                    // eslint-disable-next-line no-console
-                    console.log(
+                    debug(
                         stats.toString({
                             chunks: false,
                             colors: true,
@@ -47,8 +46,7 @@ const buildCompanionServer = (appConfig) =>
                     debug(
                         `Build complete! Files emitted to ${webpackConfig.output.path}`,
                     );
-                    // eslint-disable-next-line no-console
-                    console.log('\n');
+                    console.log('');
                 }
                 resolved = true;
                 resolve(stats);

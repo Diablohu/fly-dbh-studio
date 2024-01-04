@@ -1,10 +1,14 @@
+/* eslint-disable no-console */
+
 const fs = require('fs-extra');
 const path = require('path');
+const { promisify } = require('util');
 const { utilityProcess } = require('electron');
+const storage = require('electron-json-storage');
 const getDirDevTmp = require('koot/libs/get-dir-dev-tmp');
 const sleep = require('koot/utils/sleep');
 
-const { debug, webpackEntryName } = require('./index.js');
+const { debug, webpackEntryName, portTypes } = require('./index.js');
 
 // ============================================================================
 
@@ -16,7 +20,6 @@ let companionServerProcess;
 const main = async (createWindowOptions) =>
     new Promise(async (resolve, reject) => {
         if (process.env.WEBPACK_BUILD_ENV === 'dev') {
-            // eslint-disable-next-line no-console
             console.log('');
         }
 
@@ -29,7 +32,6 @@ const main = async (createWindowOptions) =>
             if (process.env.WEBPACK_BUILD_ENV === 'dev') {
                 switch (type) {
                     case 'update': {
-                        // eslint-disable-next-line no-console
                         console.log('');
                         debug('Updated! Relaunching...');
                         break;
@@ -40,7 +42,9 @@ const main = async (createWindowOptions) =>
             }
 
             if (companionServerProcess) {
-                companionServerProcess.kill();
+                try {
+                    companionServerProcess.kill();
+                } catch (e) {}
                 await sleep(1000);
             }
 
@@ -58,6 +62,33 @@ const main = async (createWindowOptions) =>
                     resolve();
                 }
             });
+            companionServerProcess.on('message', async (msg) => {
+                if (typeof msg === 'object' && !!msg.type) {
+                    switch (msg.type) {
+                        // `electron-json-storage` 相关操作
+                        case portTypes.storage: {
+                            try {
+                                const { method, params, timestamp } = msg;
+                                const value = await promisify(storage[method])(
+                                    ...params,
+                                );
+                                companionServerProcess.postMessage({
+                                    value,
+                                    timestamp,
+                                });
+                            } catch (error) {
+                                companionServerProcess.postMessage({
+                                    error,
+                                    timestamp: msg.timestamp,
+                                });
+                            }
+                            break;
+                        }
+                        default: {
+                        }
+                    }
+                }
+            });
         };
         let launchCompanionServerTimeout;
 
@@ -67,7 +98,6 @@ const main = async (createWindowOptions) =>
             if (process.env.WEBPACK_BUILD_ENV === 'dev') {
                 // 等待 Companion Server 进程文件生成
                 debug('Waiting for building...');
-                // eslint-disable-next-line no-console
                 console.log('');
             }
         }

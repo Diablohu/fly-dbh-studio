@@ -1,6 +1,9 @@
+/* eslint-disable no-console */
+
 const { app, BrowserWindow } = require('electron');
 const { createWindow } = require('koot-electron');
 const os = require('os');
+const { promisify } = require('util');
 const storage = require('electron-json-storage');
 const createDebug = require('debug');
 
@@ -48,12 +51,15 @@ debug.enabled = process.env.WEBPACK_BUILD_ENV === 'dev';
 // ============================================================================
 
 const main = async (createWindowOptions = {}) => {
-    // eslint-disable-next-line no-console
-    console.log('\n');
+    console.log('');
 
     // 确定用户数据存储路径
     debug('Setting user data path...');
     storage.setDataPath(os.tmpdir());
+
+    console.log(await promisify(storage.getAll)());
+    await promisify(storage.set)('AAA', { a: 'b' });
+    console.log(await promisify(storage.getAll)());
 
     // 启动 Companion Server
     // 相关信息详见 `/companion-server/README.md`
@@ -62,7 +68,6 @@ const main = async (createWindowOptions = {}) => {
 
     // 启动 Renderer
     function doCreateWindow() {
-        // eslint-disable-next-line no-console
         console.log('');
         debug('Launching Renderer...');
         createWindow(createWindowOptions);

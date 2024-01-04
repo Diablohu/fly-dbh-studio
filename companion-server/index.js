@@ -8,4 +8,7 @@ debug.enabled = process.env.WEBPACK_BUILD_ENV === 'dev';
 module.exports = {
     debug,
     webpackEntryName: 'companion_server',
+    portTypes: {
+        storage: 'STORAGE',
+    },
 };
