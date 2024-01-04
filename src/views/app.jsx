@@ -15,6 +15,7 @@ const App = extend({
 })(({ className, children, location, ...props }) => {
     // storage.setDataPath(os.tmpdir());
     useEffect(async () => {
+        console.log(await window.electronStorage.getDataPath());
         console.log(await window.electronStorage.getAll());
     }, []);
     return (

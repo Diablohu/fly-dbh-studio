@@ -79,12 +79,15 @@ const main = async (createWindowOptions = {}) => {
     // initialization and is ready to create browser windows.
     // Some APIs can only be used after this event occurs.
     app.whenReady().then(() => {
+        ['getDefaultDataPath', 'setDataPath', 'getDataPath', 'getSync'].forEach(
+            (key) => {
+                ipcMain.handle(`storage:${key}`, (...args) =>
+                    storage[key](...args),
+                );
+            },
+        );
         [
-            'getDefaultDataPath',
-            'setDataPath',
-            'getDataPath',
             'get',
-            'getSync',
             'getMany',
             'getAll',
             'set',
@@ -93,10 +96,10 @@ const main = async (createWindowOptions = {}) => {
             'remove',
             'clear',
         ].forEach((key) => {
-            ipcMain.handle(`storage:${key}`, async (...args) => {
-                const result = await promisify(storage[key])(...args);
-                return result;
-            });
+            ipcMain.handle(
+                `storage:${key}`,
+                async (...args) => await promisify(storage[key])(...args),
+            );
         });
 
         doCreateWindow();
