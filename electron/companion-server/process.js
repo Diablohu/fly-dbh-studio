@@ -23,6 +23,8 @@ const runCompanionServer = async (createWindowOptions) =>
             console.log('');
         }
 
+        // TODO: Main 进程监控 Companion Server 进程，如果 Companion Server 进程退出，自动重启
+
         const fileToWatch = path.resolve(
             getElectronFilesFolder(),
             `${webpackEntryName}.cjs`,

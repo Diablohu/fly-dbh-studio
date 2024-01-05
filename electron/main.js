@@ -55,6 +55,13 @@ debug.enabled = process.env.WEBPACK_BUILD_ENV === 'dev';
 const main = async (createWindowOptions = {}) => {
     console.log('');
 
+    debug(`getAppPath(): ${app.getAppPath()}`);
+    debug(`getPath('home'): ${app.getPath('home')}`);
+    debug(`getPath('appData'): ${app.getPath('appData')}`);
+    debug(`getPath('userData'): ${app.getPath('userData')}`);
+    debug(`getPath('sessionData'): ${app.getPath('sessionData')}`);
+    debug(`getPath('exe'): ${app.getPath('exe')}`);
+
     // 确定用户数据存储路径
     debug('Setting user data path...');
     storage.setDataPath(os.tmpdir());
@@ -117,6 +124,8 @@ const main = async (createWindowOptions = {}) => {
         // to stay active until the user quits explicitly with Cmd + Q
         if (process.platform !== 'darwin') app.quit();
     });
+
+    // TODO: Main 进程监控 Renderer 进程，在开发环境中，如果 Renderer 进程退出，自动重启
 };
 
 main({
