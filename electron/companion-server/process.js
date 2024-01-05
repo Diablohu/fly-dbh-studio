@@ -15,6 +15,10 @@ const { debug, webpackEntryName, portTypes } = require('./index.js');
 let resolved = false;
 let companionServerProcess;
 
+// start
+// safeguard
+// kill
+
 // ============================================================================
 
 const runCompanionServer = async (createWindowOptions) =>
