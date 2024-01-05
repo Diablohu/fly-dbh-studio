@@ -8,6 +8,8 @@ const { createWindow } = require('koot-electron');
 const storage = require('electron-json-storage');
 const createDebug = require('debug');
 
+const storageKeys = require('./storage-keys');
+const storageDefaults = require('./storage-defaults');
 const runCompanionServer = require('./companion-server/process');
 
 // ============================================================================
@@ -55,20 +57,29 @@ debug.enabled = process.env.WEBPACK_BUILD_ENV === 'dev';
 const main = async (createWindowOptions = {}) => {
     console.log('');
 
-    debug(`getAppPath(): ${app.getAppPath()}`);
-    debug(`getPath('home'): ${app.getPath('home')}`);
-    debug(`getPath('appData'): ${app.getPath('appData')}`);
-    debug(`getPath('userData'): ${app.getPath('userData')}`);
-    debug(`getPath('sessionData'): ${app.getPath('sessionData')}`);
-    debug(`getPath('exe'): ${app.getPath('exe')}`);
-
     // 确定用户数据存储路径
-    debug('Setting user data path...');
-    storage.setDataPath(os.tmpdir());
+    debug('Setting storage path to "userData"...');
+    storage.setDataPath(path.resolve(app.getPath('userData'), 'settings'));
 
-    // console.log(await promisify(storage.getAll)());
-    await promisify(storage.set)('AAA', { a: 'b' });
-    // console.log(await promisify(storage.getAll)());
+    debug('Preparing storage defaults...');
+    await Promise.all(
+        Object.entries(storageDefaults).map(
+            ([key, value]) =>
+                new Promise((resolve, reject) => {
+                    storage.has(key, (error, hasKey) => {
+                        if (error) return reject(error);
+                        if (!hasKey) {
+                            storage.set(key, value, (error) => {
+                                if (error) return reject(error);
+                                resolve();
+                            });
+                        } else {
+                            resolve();
+                        }
+                    });
+                }),
+        ),
+    );
 
     // 启动 Companion Server
     // 相关信息详见 `/companion-server/README.md`

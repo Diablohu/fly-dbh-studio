@@ -1,4 +1,5 @@
 const { debug, portTypes } = require('../index.js');
+const storageKeys = require('../../storage-keys.js');
 
 // ============================================================================
 
@@ -50,12 +51,9 @@ storage.rejectors = {};
 // ============================================================================
 
 async function main() {
-    debug('Listening on port 8081');
+    const { port } = await storage('get', storageKeys.companionServer);
+    debug(`Listening on port ${port}`);
     debug('Hello~~~~');
-
-    debug(await storage('getAll'));
-    await storage('set', 'AAA', new Date().toLocaleString());
-    debug(await storage('getAll'));
 }
 
 main().catch((err) => {

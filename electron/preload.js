@@ -25,8 +25,6 @@ const globals = {
     }, {}),
 };
 
-// custom storage calls: get, set, remove, getAll
-
 Object.entries(globals).forEach(([key, value]) => {
     contextBridge.exposeInMainWorld(key, value);
 });
