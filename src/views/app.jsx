@@ -4,6 +4,8 @@ import { extend } from 'koot';
 import classNames from 'classnames';
 // import storage from 'electron-json-storage';
 
+import '@fontsource/inter';
+
 import Nav from '@components/nav';
 
 import styles from './app.module.less';

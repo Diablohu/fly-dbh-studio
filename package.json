@@ -26,6 +26,10 @@
         "up": "npx npm-check-updates -i"
     },
     "dependencies": {
+        "@emotion/react": "^11.11.3",
+        "@emotion/styled": "^11.11.0",
+        "@fontsource/inter": "^5.0.16",
+        "@mui/joy": "^5.0.0-beta.22",
         "axios": "^1.6.4",
         "bind-event": "^1.1.2",
         "classnames": "^2.5.1",
