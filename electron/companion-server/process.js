@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 
 const fs = require('fs-extra');
-const path = require('path');
-const { promisify } = require('util');
+const path = require('node:path');
+const { promisify } = require('node:util');
 const { utilityProcess } = require('electron');
 const storage = require('electron-json-storage');
 const { getElectronFilesFolder } = require('koot-electron');
@@ -21,7 +21,7 @@ let companionServerProcess;
 
 // ============================================================================
 
-const runCompanionServer = async (createWindowOptions) =>
+const runCompanionServer = async (app, createWindowOptions) =>
     new Promise(async (resolve, reject) => {
         if (process.env.WEBPACK_BUILD_ENV === 'dev') {
             console.log('');

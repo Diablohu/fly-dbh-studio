@@ -84,7 +84,7 @@ const main = async (createWindowOptions = {}) => {
     // 启动 Companion Server
     // 相关信息详见 `/companion-server/README.md`
     debug('Launching Companion Server...');
-    await runCompanionServer(createWindowOptions);
+    await runCompanionServer(app, createWindowOptions);
 
     // 启动 Renderer
     function doCreateWindow() {
@@ -131,12 +131,26 @@ const main = async (createWindowOptions = {}) => {
 
     // Quit when all windows are closed.
     app.on('window-all-closed', function () {
+        debug('window-all-closed');
         // On macOS it is common for applications and their menu bar
         // to stay active until the user quits explicitly with Cmd + Q
         if (process.platform !== 'darwin') app.quit();
     });
 
     // TODO: Main 进程监控 Renderer 进程，在开发环境中，如果 Renderer 进程退出，自动重启
+
+    app.on('child-process-gone', () => {
+        console.log('child-process-gone');
+        // if (process.env.WEBPACK_BUILD_ENV === 'dev') {
+        //     debug('Companion Server process gone');
+        // }
+    });
+    app.on('render-process-gone', () => {
+        debug('render-process-gone');
+        // if (process.env.WEBPACK_BUILD_ENV === 'dev') {
+        //     debug('Companion Server process gone');
+        // }
+    });
 };
 
 main({

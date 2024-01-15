@@ -30,6 +30,7 @@
         "bind-event": "^1.1.2",
         "classnames": "^2.5.1",
         "debug": "^4.3.4",
+        "electron": "^28.1.3",
         "electron-json-storage": "^4.6.0",
         "koot": "^0.15.15",
         "node-simconnect": "^3.6.1",
