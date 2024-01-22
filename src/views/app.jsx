@@ -4,6 +4,8 @@ import { extend } from 'koot';
 import classNames from 'classnames';
 // import storage from 'electron-json-storage';
 
+import { CssVarsProvider } from '@mui/joy/styles';
+import CssBaseline from '@mui/joy/CssBaseline';
 import '@fontsource/inter';
 
 import Nav from '@components/nav';
@@ -16,25 +18,33 @@ const App = extend({
     styles,
 })(({ className, children, location, ...props }) => {
     // storage.setDataPath(os.tmpdir());
-    useEffect(async () => {
-        console.log(await window.electronStorage.getDataPath());
-        console.log(await window.electronStorage.getAll());
+    useEffect(() => {
+        async function fetchData() {
+            console.log(await window.electronStorage.getDataPath());
+            console.log(await window.electronStorage.getAll());
+        }
+        fetchData();
     }, []);
     return (
         <StrictMode>
-            <div
-                className={classNames([
-                    className,
-                    {
-                        'is-home':
-                            location.pathname === '' ||
-                            location.pathname === '/',
-                    },
-                ])}
-            >
-                <Nav location={location} {...props} />
-                <Main children={children} />
-            </div>
+            <CssVarsProvider>
+                {/* must be used under CssVarsProvider */}
+                <CssBaseline />
+
+                <div
+                    className={classNames([
+                        className,
+                        {
+                            'is-home':
+                                location.pathname === '' ||
+                                location.pathname === '/',
+                        },
+                    ])}
+                >
+                    <Nav location={location} {...props} />
+                    <Main children={children} />
+                </div>
+            </CssVarsProvider>
         </StrictMode>
     );
 });
