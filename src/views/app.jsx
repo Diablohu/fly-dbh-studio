@@ -4,19 +4,17 @@ import { extend } from 'koot';
 import classNames from 'classnames';
 // import storage from 'electron-json-storage';
 
-import { CssVarsProvider } from '@mui/joy/styles';
-import CssBaseline from '@mui/joy/CssBaseline';
 import '@fontsource/inter';
+
+import { StyledEngineProvider, CssVarsProvider } from '@mui/joy/styles';
+import CssBaseline from '@mui/joy/CssBaseline';
+import Box from '@mui/joy/Box';
 
 import Nav from '@components/nav';
 
-import styles from './app.module.less';
-
 // ============================================================================
 
-const App = extend({
-    styles,
-})(({ className, children, location, ...props }) => {
+const App = extend()(({ className, children, location, ...props }) => {
     // storage.setDataPath(os.tmpdir());
     useEffect(() => {
         async function fetchData() {
@@ -27,24 +25,42 @@ const App = extend({
     }, []);
     return (
         <StrictMode>
-            <CssVarsProvider>
-                {/* must be used under CssVarsProvider */}
-                <CssBaseline />
+            <StyledEngineProvider injectFirst>
+                <CssVarsProvider defaultMode="system" disableTransitionOnChange>
+                    {/* must be used under CssVarsProvider */}
+                    <CssBaseline />
 
-                <div
-                    className={classNames([
-                        className,
-                        {
-                            'is-home':
-                                location.pathname === '' ||
-                                location.pathname === '/',
-                        },
-                    ])}
-                >
-                    <Nav location={location} {...props} />
-                    <Main children={children} />
-                </div>
-            </CssVarsProvider>
+                    <Box
+                        className={classNames([
+                            className,
+                            {
+                                'is-home':
+                                    location.pathname === '' ||
+                                    location.pathname === '/',
+                            },
+                        ])}
+                        sx={{
+                            height: '100dvh',
+                            position: 'relative',
+                        }}
+                    >
+                        123
+                    </Box>
+                    {/* <div
+                        className={classNames([
+                            className,
+                            {
+                                'is-home':
+                                    location.pathname === '' ||
+                                    location.pathname === '/',
+                            },
+                        ])}
+                    >
+                        <Nav location={location} {...props} />
+                        <Main children={children} />
+                    </div> */}
+                </CssVarsProvider>
+            </StyledEngineProvider>
         </StrictMode>
     );
 });
