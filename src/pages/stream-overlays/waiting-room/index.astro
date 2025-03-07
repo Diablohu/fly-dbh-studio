@@ -44,7 +44,8 @@ let displayTime = "";
             border-right-width: 0;
             border-radius: var(--border-radius) 0 0 var(--border-radius);
             padding: calc(var(--padding-y) - var(--border-width))
-                var(--padding-x);
+                calc(var(--padding-x) * 3 / 4)
+                calc(var(--padding-y) - var(--border-width)) var(--padding-x);
             position: relative;
             &::after {
                 content: "";
@@ -60,8 +61,7 @@ let displayTime = "";
             }
         }
         .clock {
-            padding: var(--padding-y) var(--padding-x) var(--padding-y)
-                calc(var(--padding-x) * 2 / 3);
+            padding: var(--padding-y) var(--padding-x);
             background: var(--bgColor);
             border-radius: 0 var(--border-radius) var(--border-radius) 0;
             /* color: red; */
@@ -91,7 +91,7 @@ let displayTime = "";
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat; */
-        background-color: #0080ff;
+        /* background-color: #0080ff; */
     }
 </style>
 
