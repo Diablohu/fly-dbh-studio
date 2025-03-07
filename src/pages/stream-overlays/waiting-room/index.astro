@@ -1,0 +1,89 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import Clock from "./clock";
+
+import bg from "./bg.jpg";
+
+const bgSrc = bg.src;
+const bgColor = `rgba(0, 0, 0, 0.6667)`;
+const fontSize = 30;
+const edgeSafeDistance = 25;
+
+let displayTime = "";
+---
+
+<style
+    lang="less"
+    define:vars={{
+        bgSrc: `url(${bgSrc})`,
+        bgColor: bgColor,
+        edgeSafeDistance: `${edgeSafeDistance}px`,
+        "font-size": `${fontSize}px`,
+    }}
+>
+    .top-right {
+        --padding-y: calc(var(--font-size) / 3);
+        --padding-x: calc(var(--font-size) / 2);
+        --border-radius: calc(var(--font-size) / 2);
+        position: fixed;
+        z-index: 100;
+        top: var(--edgeSafeDistance);
+        right: var(--edgeSafeDistance);
+        font-size: var(--font-size);
+        border-radius: 10px;
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        line-height: 1em;
+        letter-spacing: 0.05em;
+        .live {
+            --border-width: 4px;
+            border: var(--border-width) solid var(--bgColor);
+            border-right-width: 0;
+            border-radius: var(--border-radius) 0 0 var(--border-radius);
+            padding: calc(var(--padding-y) - var(--border-width))
+                var(--padding-x);
+            position: relative;
+            &::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                background: #e81224;
+                z-index: -1;
+                border-radius: calc(var(--border-radius) * 0.6667) 0 0
+                    calc(var(--border-radius) * 0.6667);
+            }
+        }
+        .clock {
+            padding: var(--padding-y) var(--padding-x) var(--padding-y)
+                calc(var(--padding-x) * 2 / 3);
+            background: var(--bgColor);
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            /* color: red; */
+        }
+    }
+    .bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-image: var(--bgSrc);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+</style>
+
+<Layout>
+    <div class="top-right">
+        <span class="live">LIVE</span>
+        <span class="clock"> <Clock client:idle>{displayTime}</Clock></span>
+    </div>
+    <div class="bg"></div>
+</Layout>

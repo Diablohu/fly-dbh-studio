@@ -1,0 +1,21 @@
+{
+  "name": "minimal",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.2.1",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "astro": "^5.4.2",
+    "dayjs": "^1.11.13",
+    "less": "^4.2.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}
