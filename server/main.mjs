@@ -3,13 +3,17 @@ import path from "node:path";
 import express from "express";
 import fileUrl from "file-url";
 import debug from "debug";
-import { MSFS_API } from "msfs-simconnect-api-wrapper";
+import { MSFS_API, SystemEvents } from "msfs-simconnect-api-wrapper";
 import { OBSWebSocket } from "obs-websocket-js";
 
 // Configuration ==============================================================
 
 const port = 4321;
-const retryInterval = 60; // seconds
+const retryInterval = 5; // seconds
+const obsSceneName = "MSFS／Gaming";
+const obsOverlayNameNoHandCam = "[Overlay] MSFS";
+const obsOverlayNameWithHandCam = "[Overlay] MSFS with Control Cam";
+const obsOverlayIds = {};
 
 // ============================================================================
 
@@ -22,7 +26,15 @@ if (!fs.existsSync(astroServerEntryFile)) {
     throw new Error("Astro server entry not found! Run `build` command first!");
 }
 
-debug.enable(["OBS", "MSFS", "AstroServer", "obs-websocket-js:*"].join(","));
+debug.enable(
+    [
+        "OBS",
+        "MSFS",
+        "AstroServer",
+        "obs-websocket-js:*",
+        // "node-simconnect",
+    ].join(",")
+);
 const obsDebug = debug("OBS");
 const msfsDebug = debug("MSFS");
 const astroServerDebug = debug("AstroServer");
@@ -35,13 +47,29 @@ await (async () => {
     const connect = async () => {
         try {
             const obs = await obsApp.connect(
-                "ws://192.168.0.4:4455",
-                "password",
-                {
-                    rpcVersion: 1,
-                }
+                "ws://127.0.0.1:4455",
+                "okYhFKkByp1AlSqO"
             );
-            obsDebug("Connected!", obs);
+            obsDebug("Connected!");
+
+            obsApp.connected = true;
+            console.log(
+                await obsApp.call("GetGroupSceneItemList", {
+                    sceneName: obsSceneName,
+                })
+            );
+            obsOverlayIds.noHandCam = await obsApp.call("GetSceneItemId", {
+                sceneName: obsSceneName,
+                sourceName: obsOverlayNameNoHandCam,
+            });
+            obsOverlayIds.withHandCam = await obsApp.call("GetSceneItemId", {
+                sceneName: obsSceneName,
+                sourceName: obsOverlayNameWithHandCam,
+            });
+            obsApp.on("ConnectionClosed", () => {
+                obsApp.connected = false;
+                setTimeout(connect, retryInterval * 1000);
+            });
         } catch (err) {
             obsDebug(
                 `Connection failed: retrying in %o seconds. %O`,
@@ -59,11 +87,50 @@ await (async () => {
 })();
 
 await (async () => {
+    async function simConnect1Sec() {
+        // OBS WebSocket 未连接时，不执行
+        if (!obsApp.connected) return;
+
+        // https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variables.htm
+        // IS_SLEW_ACTIVE // 0 | 1
+        // ON_ANY_RUNWAY // 0 | 1
+        // SIM_ON_GROUND // 0 | 1
+        // AUTOPILOT_MASTER // 0 | 1
+        // GPS_GROUND_SPEED // Meters/Sec
+        // PLANE_ALT_ABOVE_GROUND // ft
+        // PLANE_ALT_ABOVE_GROUND_MINUS_CG // ft
+        const vars = await msfsApp.get(
+            "AUTOPILOT_MASTER",
+            "GPS_GROUND_SPEED",
+            "IS_SLEW_ACTIVE",
+            "ON_ANY_RUNWAY",
+            "PLANE_ALT_ABOVE_GROUND",
+            "PLANE_ALT_ABOVE_GROUND_MINUS_CG",
+            "SIM_ON_GROUND"
+        );
+        msfsDebug("%o", vars);
+
+        try {
+            // console
+            //     .log
+            //     // await obsApp.call("SetSceneItemEnabled", {
+            //     //     sceneName: obsSceneName,
+            //     //     sceneItemEnabled: true,
+            //     // })
+            //     ();
+            console.log({ obsOverlayIds });
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     msfsApp.connect({
         retries: Infinity,
         retryInterval,
         onConnect: (...args) => {
-            msfsDebug("Connected!", ...args);
+            // msfsDebug("Connected!", Object.keys(SystemEvents));
+            // https://docs.flightsimulator.com/html/Programming_Tools/Event_IDs/Event_IDs.htm
+            msfsApp.on(SystemEvents["1_SEC"], simConnect1Sec);
         },
         onRetry: (_, interval) => {
             msfsDebug(`Connection failed: retrying in %o seconds.`, interval);
