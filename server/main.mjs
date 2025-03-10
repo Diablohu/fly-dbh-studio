@@ -22,7 +22,7 @@ if (!fs.existsSync(astroServerEntryFile)) {
     throw new Error("Astro server entry not found! Run `build` command first!");
 }
 
-debug.enable("OBS,MSFS,AstroServer");
+debug.enable(["OBS", "MSFS", "AstroServer", "obs-websocket-js:*"].join(","));
 const obsDebug = debug("OBS");
 const msfsDebug = debug("MSFS");
 const astroServerDebug = debug("AstroServer");
