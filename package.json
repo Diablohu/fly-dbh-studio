@@ -1,34 +1,33 @@
 {
-  "name": "minimal",
-  "type": "module",
-  "version": "0.0.1",
-  "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro",
-    "start": "http-server ./dist -p 4321"
-  },
-  "dependencies": {
-    "@astrojs/node": "^9.1.2",
-    "@astrojs/react": "^4.2.1",
-    "@koa/router": "^13.1.0",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
-    "astro": "^5.4.2",
-    "dayjs": "^1.11.13",
-    "http-server": "^14.1.1",
-    "less": "^4.2.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.13.10",
-    "debug": "^4.4.0",
-    "file-url": "^4.0.0",
-    "koa": "^2.16.0",
-    "koa-static": "^5.0.0",
-    "msfs-simconnect-api-wrapper": "^4.6.2",
-    "node-windows": "^1.0.0-beta.8"
-  }
+    "name": "minimal",
+    "type": "module",
+    "version": "0.0.1",
+    "scripts": {
+        "dev": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview",
+        "astro": "astro",
+        "start": "npm run build & node ./server/main.mjs",
+        "start:static": "http-server ./dist -p 4321"
+    },
+    "dependencies": {
+        "@astrojs/node": "^9.1.2",
+        "@astrojs/react": "^4.2.1",
+        "astro": "^5.4.2",
+        "dayjs": "^1.11.13",
+        "less": "^4.2.2",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.10",
+        "@types/react": "^19.0.10",
+        "@types/react-dom": "^19.0.4",
+        "debug": "^4.4.0",
+        "express": "^4.21.2",
+        "file-url": "^4.0.0",
+        "http-server": "^14.1.1",
+        "msfs-simconnect-api-wrapper": "^4.6.2",
+        "node-windows": "^1.0.0-beta.8"
+    }
 }

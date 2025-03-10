@@ -1,11 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
-import Koa from "koa";
-import Static from "koa-static";
-// import Router from "@koa/router";
+import express from "express";
 import fileUrl from "file-url";
 import { MSFS_API } from "msfs-simconnect-api-wrapper";
 import debug from "debug";
+
+// Configuration ==============================================================
+
+const port = 4321;
 
 // ============================================================================
 
@@ -18,13 +20,11 @@ if (!fs.existsSync(astroServerEntryFile)) {
     throw new Error("Astro server entry not found! Run `build` command first!");
 }
 
-const astroServerModule = await import(fileUrl(astroServerEntryFile));
-const app = new Koa();
-// const router = new Router();
+debug.enable("*");
+const simconnectDebug = debug("SimConnect");
+const astroServerDebug = debug("AstroServer");
 
 (() => {
-    const simconnectDebug = debug("SimConnect");
-    simconnectDebug.enabled = true;
     const api = new MSFS_API();
     api.connect({
         retries: Infinity,
@@ -40,10 +40,18 @@ const app = new Koa();
     });
 })();
 
-// router.get("/aaa", (ctx, next) => {
-//     ctx.body = "bbb";
-// });
-app.use(Static(path.resolve(import.meta.dirname, "../dist/client")));
+const astroServerModule = await import(fileUrl(astroServerEntryFile));
+const app = express();
+// Change this based on your astro.config.mjs, `base` option.
+// They should match. The default value is "/".
+const base = "/";
+app.use(
+    base,
+    express.static(path.resolve(import.meta.dirname, "../dist/client"))
+);
 app.use(astroServerModule.handler);
 
-// app.listen(4322);
+app.listen(port, function (err) {
+    if (err) astroServerDebug("Error in server setup");
+    astroServerDebug("Server listening on Port", port);
+});
