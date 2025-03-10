@@ -11,9 +11,10 @@ import { OBSWebSocket } from "obs-websocket-js";
 const port = 4321;
 const retryInterval = 5; // seconds
 const obsSceneName = "MSFS／Gaming";
+const obsOverlayGroupName = "MSFS Gaming Overlays Bottom";
 const obsOverlayNameNoHandCam = "[Overlay] MSFS";
 const obsOverlayNameWithHandCam = "[Overlay] MSFS with Control Cam";
-const obsOverlayIds = {};
+const obsScenes = {};
 
 // ============================================================================
 
@@ -53,19 +54,22 @@ await (async () => {
             obsDebug("Connected!");
 
             obsApp.connected = true;
-            console.log(
-                await obsApp.call("GetGroupSceneItemList", {
-                    sceneName: obsSceneName,
-                })
-            );
-            obsOverlayIds.noHandCam = await obsApp.call("GetSceneItemId", {
-                sceneName: obsSceneName,
-                sourceName: obsOverlayNameNoHandCam,
+            const { sceneItems } = await obsApp.call("GetGroupSceneItemList", {
+                sceneName: obsOverlayGroupName,
             });
-            obsOverlayIds.withHandCam = await obsApp.call("GetSceneItemId", {
-                sceneName: obsSceneName,
-                sourceName: obsOverlayNameWithHandCam,
-            });
+            for (const scene of sceneItems) {
+                switch (scene.sourceName) {
+                    case obsOverlayNameNoHandCam: {
+                        obsScenes.noHandCam = scene;
+                        break;
+                    }
+                    case obsOverlayNameWithHandCam: {
+                        obsScenes.withHandCam = scene;
+                        break;
+                    }
+                }
+            }
+
             obsApp.on("ConnectionClosed", () => {
                 obsApp.connected = false;
                 setTimeout(connect, retryInterval * 1000);
@@ -104,21 +108,48 @@ await (async () => {
             "GPS_GROUND_SPEED",
             "IS_SLEW_ACTIVE",
             "ON_ANY_RUNWAY",
-            "PLANE_ALT_ABOVE_GROUND",
+            // "PLANE_ALT_ABOVE_GROUND",
             "PLANE_ALT_ABOVE_GROUND_MINUS_CG",
             "SIM_ON_GROUND"
         );
-        msfsDebug("%o", vars);
+        const IS_ON_GROUND =
+            vars.ON_ANY_RUNWAY === 1 ||
+            vars.SIM_ON_GROUND === 1 ||
+            vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 0.5;
+
+        msfsDebug("%o", { ...vars, IS_ON_GROUND });
 
         try {
-            // console
-            //     .log
-            //     // await obsApp.call("SetSceneItemEnabled", {
-            //     //     sceneName: obsSceneName,
-            //     //     sceneItemEnabled: true,
-            //     // })
-            //     ();
-            console.log({ obsOverlayIds });
+            // console.log(
+            //     { obsScenes },
+            //     await obsApp.call("GetSceneItemEnabled", {
+            //         sceneName: obsOverlayGroupName,
+            //         sceneItemId: obsScenes.withHandCam.sceneItemId,
+            //     })
+            // );
+            // await obsApp.call("SetSceneItemEnabled", {
+            //     sceneName: obsOverlayGroupName,
+            //     sceneItemId: obsScenes.withHandCam.sceneItemId,
+            //     sceneItemEnabled: true,
+            // });
+            if (
+                !vars.IS_SLEW_ACTIVE &&
+                ((vars.ON_ANY_RUNWAY === 1 && vars.GPS_GROUND_SPEED > 1) ||
+                    (IS_ON_GROUND && vars.GPS_GROUND_SPEED > 15) ||
+                    (!IS_ON_GROUND && vars.AUTOPILOT_MASTER === 0))
+            ) {
+                await obsApp.call("SetSceneItemEnabled", {
+                    sceneName: obsOverlayGroupName,
+                    sceneItemId: obsScenes.withHandCam.sceneItemId,
+                    sceneItemEnabled: true,
+                });
+            } else {
+                await obsApp.call("SetSceneItemEnabled", {
+                    sceneName: obsOverlayGroupName,
+                    sceneItemId: obsScenes.noHandCam.sceneItemId,
+                    sceneItemEnabled: true,
+                });
+            }
         } catch (e) {
             console.log(e);
         }
