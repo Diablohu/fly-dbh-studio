@@ -9,7 +9,7 @@ import { OBSWebSocket } from "obs-websocket-js";
 // Configuration ==============================================================
 
 const port = 4321;
-const retryInterval = 5; // seconds
+const retryInterval = 30; // seconds
 const obsSceneName = "MSFS／Gaming";
 const obsOverlayGroupName = "MSFS Gaming Overlays Bottom";
 const obsOverlayNameNoHandCam = "[Overlay] MSFS";
@@ -117,7 +117,7 @@ await (async () => {
             vars.SIM_ON_GROUND === 1 ||
             vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 0.5;
 
-        msfsDebug("%o", { ...vars, IS_ON_GROUND });
+        // msfsDebug("%o", { ...vars, IS_ON_GROUND });
 
         try {
             // console.log(
