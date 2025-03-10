@@ -1,48 +1,19 @@
-# Astro Starter Kit: Basics
+# FLY-DBH Studio
 
-```sh
-npm create astro@latest -- --template basics
-```
+_Diablohu_ 自用的模拟飞行直播工具包。
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
+## 当前功能
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+-   直播覆盖层：等待室
+    -   访问 `localhost:4321/stream-overlays/waiting-room`
+-   _OBS_ 服务器 & _SimConnect_ 服务器
+    -   [ ] 计划：当 **自动驾驶** 开启，隐藏 **_OBS_ 外设镜头**
+    -   [ ] 计划：当 **自动驾驶** 关闭，且 **地速超过 30 节**，显示 **_OBS_ 外设镜头**
 
-![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
+## 开发
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+| 命令          |                                                                                                |
+| :------------ | :--------------------------------------------------------------------------------------------- |
+| `npm install` | 安装 _NPM_ 依赖                                                                                |
+| `npm run dev` | 开启网页端的本地开发服务器 `localhost:4321`，支持热更新。仅网页端                              |
+| `npm start`   | 打包至 `./dist/` 并自动执行服务器启动脚本，同时启动网页服务器和 _OBS_ 以及 _SimConnect_ 服务器 |
