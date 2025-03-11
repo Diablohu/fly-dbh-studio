@@ -92,19 +92,22 @@ async function simConnect1Sec() {
 }
 
 async function connect() {
+    // console.log(app)
     app.connect({
         retries: Infinity,
         retryInterval,
+        autoReconnect: true,
         onConnect: (...args) => {
+            debug("Connected!");
             // debug("Connected!", Object.keys(SystemEvents));
             // https://docs.flightsimulator.com/html/Programming_Tools/Event_IDs/Event_IDs.htm
             app.on(SystemEvents["1_SEC"], simConnect1Sec);
-            app.addEventListener("AP_MASTER", (...args) => {
-                console.log("AP_MASTER FIRED!", ...args);
-            });
         },
         onRetry: (_, interval) => {
             debug(`Connection failed: retrying in %o seconds.`, interval);
+        },
+        onException: (err) => {
+            debug(`Error! %o`, err);
         },
     });
 }
