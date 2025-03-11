@@ -3,9 +3,9 @@ import { MSFS_API, SystemEvents } from "msfs-simconnect-api-wrapper";
 
 import { retryInterval } from "../config.mjs";
 import {
-    app as obsApp,
-    targetOverlayGroupName as obsTargetOverlayGroupName,
-    scenes as obsScenes,
+    // app as obsApp,
+    showHandCam as obsShowHandCam,
+    showNoHandCam as obsShowNoHandCam,
 } from "../obs/index.mjs";
 
 // ============================================================================
@@ -21,21 +21,21 @@ const states = {
     // PLANE_ALT_ABOVE_GROUND // ft
     // PLANE_ALT_ABOVE_GROUND_MINUS_CG // ft
 };
-const varsToWatch = [
-    "AUTOPILOT_MASTER",
-    "GPS_GROUND_SPEED",
-    "IS_SLEW_ACTIVE",
-    "ON_ANY_RUNWAY",
-    // "PLANE_ALT_ABOVE_GROUND",
-    "PLANE_ALT_ABOVE_GROUND_MINUS_CG",
-    "SIM_ON_GROUND",
-];
+// const varsToWatch = [
+//     "AUTOPILOT_MASTER",
+//     "GPS_GROUND_SPEED",
+//     "IS_SLEW_ACTIVE",
+//     "ON_ANY_RUNWAY",
+//     // "PLANE_ALT_ABOVE_GROUND",
+//     "PLANE_ALT_ABOVE_GROUND_MINUS_CG",
+//     "SIM_ON_GROUND",
+// ];
 
 // ============================================================================
 
 async function simConnect1Sec() {
     // OBS WebSocket 未连接时，不执行
-    if (!obsApp.connected) return;
+    // if (!obsApp.connected) return;
 
     // https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variables.htm
 
@@ -43,17 +43,28 @@ async function simConnect1Sec() {
         "AUTOPILOT_MASTER",
         "GPS_GROUND_SPEED",
         "IS_SLEW_ACTIVE",
+        // "IS_USER_SIM",
         "ON_ANY_RUNWAY",
         // "PLANE_ALT_ABOVE_GROUND",
         "PLANE_ALT_ABOVE_GROUND_MINUS_CG",
-        "SIM_ON_GROUND"
+        "SIM_ON_GROUND",
+        "TITLE",
+        "CAMERA_STATE"
     );
+
+    const IS_GAMEPLAY = [
+        2, 3,
+        // 4,
+        // 5,
+        6, 7, 8,
+        // 9, 10,
+    ].includes(vars.CAMERA_STATE);
     const IS_ON_GROUND =
         vars.ON_ANY_RUNWAY === 1 ||
         vars.SIM_ON_GROUND === 1 ||
         vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 0.5;
 
-    // debug("%o", { ...vars, IS_ON_GROUND });
+    // debug("%o", { ...vars, IS_GAMEPLAY, IS_ON_GROUND });
 
     try {
         // console.log(
@@ -69,22 +80,15 @@ async function simConnect1Sec() {
         //     sceneItemEnabled: true,
         // });
         if (
+            IS_GAMEPLAY &&
             !vars.IS_SLEW_ACTIVE &&
             ((vars.ON_ANY_RUNWAY === 1 && vars.GPS_GROUND_SPEED > 1) ||
                 (IS_ON_GROUND && vars.GPS_GROUND_SPEED > 15) ||
                 (!IS_ON_GROUND && vars.AUTOPILOT_MASTER === 0))
         ) {
-            await obsApp.call("SetSceneItemEnabled", {
-                sceneName: obsTargetOverlayGroupName,
-                sceneItemId: obsScenes.withHandCam.sceneItemId,
-                sceneItemEnabled: true,
-            });
+            await obsShowHandCam();
         } else {
-            await obsApp.call("SetSceneItemEnabled", {
-                sceneName: obsTargetOverlayGroupName,
-                sceneItemId: obsScenes.noHandCam.sceneItemId,
-                sceneItemEnabled: true,
-            });
+            await obsShowNoHandCam();
         }
     } catch (e) {
         console.log(e);

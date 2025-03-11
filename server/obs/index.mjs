@@ -48,18 +48,46 @@ const connect = async () => {
             setTimeout(connect, retryInterval * 1000);
         });
     } catch (err) {
-        debug(
-            `Connection failed: retrying in %o seconds. %O`,
-            retryInterval,
-            {
-                code: err.code,
-                message: err.message,
-            }
-        );
+        debug(`Connection failed: retrying in %o seconds. %O`, retryInterval, {
+            code: err.code,
+            message: err.message,
+        });
         // debug(`Reason: [${err.code}] ${err.message}`);
         setTimeout(connect, retryInterval * 1000);
     }
 };
+
+async function showCam(sceneObj, name) {
+    // OBS WebSocket 未连接时，不执行
+    if (!app.connected) return;
+
+    // 如果当前已显示，不执行
+    if (
+        (
+            await app?.call?.("GetSceneItemEnabled", {
+                sceneName: targetOverlayGroupName,
+                sceneItemId: sceneObj.sceneItemId,
+            })
+        )?.sceneItemEnabled
+    )
+        return;
+
+    await app?.call?.("SetSceneItemEnabled", {
+        sceneName: targetOverlayGroupName,
+        sceneItemId: sceneObj.sceneItemId,
+        sceneItemEnabled: true,
+    });
+
+    debug("Switch to %o", name);
+}
+
+export async function showHandCam() {
+    return await showCam(scenes.withHandCam, "HandCam");
+}
+
+export async function showNoHandCam() {
+    return await showCam(scenes.noHandCam, "NoHandCam");
+}
 
 // ============================================================================
 
