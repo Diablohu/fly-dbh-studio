@@ -7,8 +7,9 @@
         "build": "astro build",
         "preview": "astro preview",
         "astro": "astro",
-        "start": "npm run build & node ./server/main.mjs",
-        "start:static": "http-server ./dist -p 4321"
+        "start": "npm run build & npm run start:server",
+        "start:static": "http-server ./dist -p 4321",
+        "start:server": "node ./server/main.mjs"
     },
     "dependencies": {
         "@astrojs/node": "^9.1.2",
@@ -20,6 +21,7 @@
         "react-dom": "^19.0.0"
     },
     "devDependencies": {
+        "@types/express": "^5.0.0",
         "@types/node": "^22.13.10",
         "@types/react": "^19.0.10",
         "@types/react-dom": "^19.0.4",
@@ -29,6 +31,7 @@
         "http-server": "^14.1.1",
         "msfs-simconnect-api-wrapper": "^4.6.2",
         "node-windows": "^1.0.0-beta.8",
-        "obs-websocket-js": "^5.0.6"
+        "obs-websocket-js": "^5.0.6",
+        "ts-node": "^10.9.2"
     }
 }
