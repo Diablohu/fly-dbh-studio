@@ -33,7 +33,7 @@ const states = {
 
 // ============================================================================
 
-async function simConnect1Sec() {
+async function simConnect1Sec(...args) {
     // OBS WebSocket 未连接时，不执行
     // if (!obsApp.connected) return;
 
@@ -64,7 +64,7 @@ async function simConnect1Sec() {
         vars.SIM_ON_GROUND === 1 ||
         vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 0.5;
 
-    // debug("%o", { ...vars, IS_GAMEPLAY, IS_ON_GROUND });
+    debug("%o", { ...vars, IS_GAMEPLAY, IS_ON_GROUND });
 
     try {
         // console.log(
@@ -96,23 +96,44 @@ async function simConnect1Sec() {
 }
 
 async function connect() {
+    let removeAppListener;
+
     // console.log(app)
     app.connect({
         retries: Infinity,
         retryInterval,
         autoReconnect: true,
-        onConnect: (...args) => {
+        onConnect: (handle) => {
             debug("Connected!");
             // debug("Connected!", Object.keys(SystemEvents));
+
+            removeAppListener?.();
+
+            // 如果 `app` 实例有残存的事件，解绑
+            const eventDefinition = SystemEvents["1_SEC"];
+            const { name: eventName } = eventDefinition;
+            const { eventListeners: e } = app;
+            // console.log("___", e[eventName], e[eventName]?.eventID);
+            if (e[eventName]) {
+                handle.unsubscribeFromSystemEvent(e[eventName].eventID);
+                delete e[eventName];
+                debug("Removed existing event handlers.");
+            }
+
             // https://docs.flightsimulator.com/html/Programming_Tools/Event_IDs/Event_IDs.htm
-            app.on(SystemEvents["1_SEC"], simConnect1Sec);
+            removeAppListener = app.on(eventDefinition, simConnect1Sec);
+            // console.log(removeAppListener);
         },
         onRetry: (_, interval) => {
+            removeAppListener?.();
+            obsShowNoHandCam();
+
             debug(`Connection failed: retrying in %o seconds.`, interval);
         },
-        onException: (err) => {
-            debug(`Error! %o`, err);
-        },
+        // onException: (err) => {
+        //     removeAppListener?.();
+        //     debug(`Error! %o`, err);
+        // },
     });
 }
 

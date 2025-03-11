@@ -16,3 +16,4 @@ svc.on("install", function () {
 });
 
 svc.install();
+// svc.uninstall();
