@@ -12,6 +12,24 @@ import {
 
 export const debug = dbg("MSFS");
 export const app = new MSFS_API();
+const states = {
+    // IS_SLEW_ACTIVE // 0 | 1
+    // ON_ANY_RUNWAY // 0 | 1
+    // SIM_ON_GROUND // 0 | 1
+    // AUTOPILOT_MASTER // 0 | 1
+    // GPS_GROUND_SPEED // Meters/Sec
+    // PLANE_ALT_ABOVE_GROUND // ft
+    // PLANE_ALT_ABOVE_GROUND_MINUS_CG // ft
+};
+const varsToWatch = [
+    "AUTOPILOT_MASTER",
+    "GPS_GROUND_SPEED",
+    "IS_SLEW_ACTIVE",
+    "ON_ANY_RUNWAY",
+    // "PLANE_ALT_ABOVE_GROUND",
+    "PLANE_ALT_ABOVE_GROUND_MINUS_CG",
+    "SIM_ON_GROUND",
+];
 
 // ============================================================================
 
@@ -20,14 +38,6 @@ async function simConnect1Sec() {
     if (!obsApp.connected) return;
 
     // https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variables.htm
-
-    // IS_SLEW_ACTIVE // 0 | 1
-    // ON_ANY_RUNWAY // 0 | 1
-    // SIM_ON_GROUND // 0 | 1
-    // AUTOPILOT_MASTER // 0 | 1
-    // GPS_GROUND_SPEED // Meters/Sec
-    // PLANE_ALT_ABOVE_GROUND // ft
-    // PLANE_ALT_ABOVE_GROUND_MINUS_CG // ft
 
     const vars = await app.get(
         "AUTOPILOT_MASTER",
@@ -89,6 +99,9 @@ async function connect() {
             // debug("Connected!", Object.keys(SystemEvents));
             // https://docs.flightsimulator.com/html/Programming_Tools/Event_IDs/Event_IDs.htm
             app.on(SystemEvents["1_SEC"], simConnect1Sec);
+            app.addEventListener("AP_MASTER", (...args) => {
+                console.log("AP_MASTER FIRED!", ...args);
+            });
         },
         onRetry: (_, interval) => {
             debug(`Connection failed: retrying in %o seconds.`, interval);
