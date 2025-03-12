@@ -10,6 +10,11 @@ import {
 
 // ============================================================================
 
+/*
+TODO: 脚舵 <-> 油门
+    条件：地面：脚舵？
+*/
+
 export const debug = dbg("MSFS");
 export const app = new MSFS_API();
 const states = {
@@ -37,7 +42,8 @@ async function simConnect1Sec(...args) {
     // OBS WebSocket 未连接时，不执行
     // if (!obsApp.connected) return;
 
-    // https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variables.htm
+    // 2020: https://docs.flightsimulator.com/html/Programming_Tools/SimVars/Simulation_Variables.htm
+    // 2024: https://docs.flightsimulator.com/msfs2024/html/6_Programming_APIs/SimVars/Simulation_Variables.htm
 
     const vars = await app.get(
         "AUTOPILOT_MASTER",
