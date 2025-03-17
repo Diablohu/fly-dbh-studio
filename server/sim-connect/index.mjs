@@ -99,7 +99,7 @@ async function simConnect1Sec(...args) {
             return await obsShowHandCam();
         if (IS_ON_GROUND && vars.GPS_GROUND_SPEED > 15)
             return await obsShowHandCam();
-        if (vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 5000)
+        if (!IS_ON_GROUND && vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 2000)
             return await obsShowHandCam();
 
         return await obsShowNoHandCam();
