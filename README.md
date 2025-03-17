@@ -9,12 +9,14 @@ _Diablohu_ 自用的模拟飞行直播工具包。
 -   _OBS_ 服务器 & _SimConnect_ 服务器
     -   根据以下条件，控制 **_OBS_ 外设镜头** 的显示与否，优先级从上至下，哪个条件先满足，就执行哪个结果
         -   `非游戏状态` : ⛔ 隐藏
-            -   根据 `simvar:CAMERA_STATE` 判断
+            -   基于 `simvar:CAMERA_STATE`
         -   `自动驾驶正在生效` : ⛔ 隐藏
-            -   根据 `simvar:AUTOPILOT_MASTER` 判断，故不适用于所有机型
+            -   基于 `simvar:AUTOPILOT_MASTER`，不适用于所有机型
         -   `在跑道上` 且 `地速大于 1 m/s` : ✅ 显示
+            -   地速基于 `simvar:GPS_GROUND_SPEED`
         -   `在地面上` 且 `地速大于 15 m/s` : ✅ 显示
         -   `在空中` 且 `离地高度小于 2000 ft` : ✅ 显示
+            -   离地高度基于 `simvar:PLANE_ALT_ABOVE_GROUND_MINUS_CG`
         -   其他条件 : ⛔ 隐藏
 
 ## 开发
