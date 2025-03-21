@@ -1,10 +1,10 @@
 ---
 // export const prerender = false;
 
-import Layout from "../../../layouts/Layout.astro";
-import Clock from "./clock";
+import Layout from "@/layouts/Layout.astro";
+import Clock from "./_clock";
 
-import bg from "./bg.jpg";
+import bg from "./_bg.jpg";
 
 const bgSrc = bg.src;
 const bgColor = `rgba(0, 0, 0, 0.6667)`;
@@ -13,6 +13,15 @@ const edgeSafeDistance = 25;
 
 let displayTime = "";
 ---
+
+<Layout showFrame={false} title={["等待室", "直播覆盖层"]}>
+    <div class="top-right">
+        <span class="live">LIVE</span>
+        <span class="clock"><Clock client:idle>{displayTime}</Clock></span>
+        <span class="bottom-shadow"></span>
+    </div>
+    <div class="bg"></div>
+</Layout>
 
 <style
     lang="less"
@@ -40,7 +49,7 @@ let displayTime = "";
         font-weight: 900;
         line-height: 1em;
         letter-spacing: 0.05em;
-        zoom: 1.5;
+        /* zoom: 1.5; */
         .live {
             --border-width: 4px;
             border: var(--border-width) solid var(--bgColor);
@@ -67,6 +76,34 @@ let displayTime = "";
             padding: var(--padding-y) var(--padding-x);
             background: var(--bgColor);
             border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            position: relative;
+            width: 5em;
+            text-align: center;
+            letter-spacing: 0.2em;
+            &::before {
+                content: ":";
+                position: absolute;
+                left: 50%;
+                width: 0;
+                margin-left: -0.25em;
+                text-align: center;
+                letter-spacing: 0;
+                animation: clock-ticking 2s linear infinite;
+                @keyframes clock-ticking {
+                    0% {
+                        opacity: 1;
+                    }
+                    49.9999999% {
+                        opacity: 1;
+                    }
+                    50% {
+                        opacity: 0;
+                    }
+                    99.99999999% {
+                        opacity: 0;
+                    }
+                }
+            }
             /* color: red; */
         }
     }
@@ -97,12 +134,3 @@ let displayTime = "";
         /* background-color: #0080ff; */
     }
 </style>
-
-<Layout>
-    <div class="top-right">
-        <span class="live">LIVE</span>
-        <span class="clock"><Clock client:idle>{displayTime}</Clock></span>
-        <span class="bottom-shadow"></span>
-    </div>
-    <div class="bg"></div>
-</Layout>

@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 // ============================================================================
 
 let interval: ReturnType<typeof setInterval>;
-const getCurrentTimeText = () => dayjs().format("HH:mm:ss");
+const getCurrentTimeText = () => dayjs().format("HH mm");
 
 // ============================================================================
 

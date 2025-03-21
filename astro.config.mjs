@@ -13,5 +13,6 @@ export default defineConfig({
     }),
 
     output: 'server',
+    server: ({ command }) => ({ port: command === 'dev' ? 4322 : 4321 })
     // site: 'https://fly-dbh.com/',
 });

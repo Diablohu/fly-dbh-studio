@@ -1,0 +1,1 @@
+// Extend TypeScript typings

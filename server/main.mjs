@@ -27,6 +27,7 @@ debug.enable(
         "MSFS",
         "AstroServer",
         "obs-websocket-js:*",
+        "FLY-DBH Studio",
         // "node-simconnect",
     ].join(",")
 );

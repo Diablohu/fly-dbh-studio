@@ -1,0 +1,34 @@
+@import (less) "normalize.css/normalize.css";
+
+:root {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    font-family: Roboto, "SF Pro Display", "SF Pro Icons", "Helvetica Neue",
+        "Helvetica", "Arial", "Sarasa Gothic SC", "更纱黑体",
+        "Microsoft YaHei UI", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+}
+
+a,
+button[type="button"] {
+    transition: 0.3s;
+    transition-property: transform;
+    &:active {
+        transform: translateY(2px);
+    }
+}
+
+button[type="button"] {
+    cursor: pointer;
+}
