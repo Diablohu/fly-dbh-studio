@@ -25,31 +25,34 @@ debug.enable(
     [
         "OBS",
         "MSFS",
-        "AstroServer",
+        "Server",
         "obs-websocket-js:*",
         "FLY-DBH Studio",
         // "node-simconnect",
     ].join(",")
 );
-const astroServerDebug = debug("AstroServer");
+const apiServerDebug = debug("Server");
 
 await startObsServer();
 await startSimConnectServer();
 
 await (async () => {
     const serverApp = express();
-    const astroServerModule = await import(fileUrl(astroServerEntryFile));
-    // Change this based on your astro.config.mjs, `base` option.
-    // They should match. The default value is "/".
-    const base = "/";
-    serverApp.use(
-        base,
-        express.static(path.resolve(import.meta.dirname, "../dist/client"))
-    );
-    serverApp.use(astroServerModule.handler);
+
+    if (process.env.NODE_ENV === "production") {
+        const astroServerModule = await import(fileUrl(astroServerEntryFile));
+        // Change this based on your astro.config.mjs, `base` option.
+        // They should match. The default value is "/".
+        const base = "/";
+        serverApp.use(
+            base,
+            express.static(path.resolve(import.meta.dirname, "../dist/client"))
+        );
+        serverApp.use(astroServerModule.handler);
+    }
 
     serverApp.listen(port, function (err) {
-        if (err) astroServerDebug("Error in server setup");
-        astroServerDebug("Server listening on Port %o", port);
+        if (err) apiServerDebug("Error in server setup");
+        apiServerDebug("Server listening on Port %o", port);
     });
 })();

@@ -10,9 +10,49 @@ import {
 
 // ============================================================================
 
-/*
-TODO: 脚舵 <-> 油门
-    条件：地面：脚舵？
+/* TODO: v2
+
+animate avatar position when toggling Left
+
+if Not Gameplay
+		Left				Hide
+		Right/Throttle		Hide
+		Right/Rudder		Hide
+else if On Runway
+	if Ground Speed > 5m/s || AIRSPEED_INDICATED > 20kt
+		Left				Show
+		Right/Throttle		Hide
+		Right/Rudder		Show
+	else
+		Left				Show
+		Right/Throttle		Show
+		Right/Rudder		Hide
+else if	On Ground
+	if Ground Speed > 10m/s
+		Left				Show
+		Right/Throttle		Hide
+		Right/Rudder		Show
+	else if Ground Speed > 2m/s
+		Left				Hide
+		Right/Throttle		Show
+		Right/Rudder		Hide
+	else
+		Left				Hide
+		Right/Throttle		Hide
+		Right/Rudder		Hide
+else // airborne
+	if AP ON || AGL >= 2000ft
+		Left				Hide
+		Right/Throttle		Hide
+		Right/Rudder		Hide
+	else if AGL >= 20ft
+		Left				Show
+		Right/Throttle		Show
+		Right/Rudder		Hide
+	else
+		Left				Show
+		Right/Throttle		Hide
+		Right/Rudder		Show
 */
 
 export const debug = dbg("MSFS");
@@ -43,7 +83,7 @@ const states = {
 
 // ============================================================================
 
-async function simConnect1Sec(...args) {
+async function simConnect1Sec() {
     // OBS WebSocket 未连接时，不执行
     // if (!obsApp.connected) return;
 
@@ -56,6 +96,7 @@ async function simConnect1Sec(...args) {
         // "PMDG_NG3_Data",
         // "PMDG_NG3_DATA_NAME",
         // "PMDG_NG3_MCP_FDSw2",
+        "AIRSPEED_INDICATED",
         "GPS_GROUND_SPEED",
         // "IS_SLEW_ACTIVE",
         // "IS_USER_SIM",

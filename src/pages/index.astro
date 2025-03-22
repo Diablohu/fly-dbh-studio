@@ -1,5 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import { baseURL } from "@/utils/request-api";
 ---
 
-<Layout> FLY-DBH Studio </Layout>
+<Layout>
+    <h1>FLY-DBH Studio</h1>
+    <p>API Server: {baseURL}</p>
+</Layout>

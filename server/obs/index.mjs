@@ -5,6 +5,12 @@ import { retryInterval } from "../config.mjs";
 
 // Configuration ==============================================================
 
+/* TODO: v2
+
+* All sources in `[Overlay] MSFS`
+* Animate avatar position when toggling Left
+*/
+
 const targetSceneName = "MSFS／Gaming";
 export const targetOverlayGroupName = "MSFS Gaming Overlays Bottom";
 const sourceNameNoHandCam = "[Overlay] MSFS";
