@@ -54,28 +54,30 @@ const connect = async () => {
         // debug(sourceObjs);
 
         broadcastInterval = setInterval(async () => {
-            broadcast("obs", {
-                connected: true,
-                cam_control: (
-                    await app?.call?.("GetSceneItemEnabled", {
-                        sceneName: targetSceneName,
-                        sceneItemId: sourceObjs["cam_control"].sceneItemId,
-                    })
-                ).sceneItemEnabled,
-                cam_throttle: (
-                    await app?.call?.("GetSceneItemEnabled", {
-                        sceneName: targetSceneName,
-                        sceneItemId: sourceObjs["cam_throttle"].sceneItemId,
-                    })
-                ).sceneItemEnabled,
-                cam_rudder: (
-                    await app?.call?.("GetSceneItemEnabled", {
-                        sceneName: targetSceneName,
-                        sceneItemId: sourceObjs["cam_rudder"].sceneItemId,
-                    })
-                ).sceneItemEnabled,
-            });
-        }, 1_000);
+            try {
+                const [cam_control, cam_throttle, cam_rudder] =
+                    await Promise.all([
+                        app?.call?.("GetSceneItemEnabled", {
+                            sceneName: targetSceneName,
+                            sceneItemId: sourceObjs["cam_control"].sceneItemId,
+                        }),
+                        app?.call?.("GetSceneItemEnabled", {
+                            sceneName: targetSceneName,
+                            sceneItemId: sourceObjs["cam_throttle"].sceneItemId,
+                        }),
+                        app?.call?.("GetSceneItemEnabled", {
+                            sceneName: targetSceneName,
+                            sceneItemId: sourceObjs["cam_rudder"].sceneItemId,
+                        }),
+                    ]);
+                broadcast("obs", {
+                    connected: true,
+                    cam_control: cam_control.sceneItemEnabled,
+                    cam_throttle: cam_throttle.sceneItemEnabled,
+                    cam_rudder: cam_rudder.sceneItemEnabled,
+                });
+            } catch (e) {}
+        }, 2_000);
 
         app.on("ConnectionClosed", () => {
             if (broadcastInterval) clearInterval(broadcastInterval);
@@ -84,6 +86,8 @@ const connect = async () => {
             setTimeout(connect, retryInterval * 1000);
         });
     } catch (err) {
+        app.connected = false;
+        broadcast("obs", { connected: false });
         debug(`Connection failed: retrying in %o seconds. %O`, retryInterval, {
             code: err.code,
             message: err.message,

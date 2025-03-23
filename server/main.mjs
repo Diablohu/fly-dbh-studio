@@ -40,7 +40,8 @@ await startSimConnectServer();
 await startWebSocketServer(serverApp);
 
 await (async () => {
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV === "development") {
+    } else {
         const astroServerModule = await import(fileUrl(astroServerEntryFile));
         // Change this based on your astro.config.mjs, `base` option.
         // They should match. The default value is "/".

@@ -4,7 +4,9 @@
     --main-safety-edge: 30px;
 
     box-sizing: border-box;
-    background: #282828;
+    &:has(body > .root) {
+        background: #282828;
+    }
 }
 
 html,
