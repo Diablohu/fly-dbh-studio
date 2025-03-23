@@ -68,70 +68,72 @@ export async function setCamState(state) {
     // OBS WebSocket 未连接时，不执行
     if (!app.connected) return;
 
-    for (const [name, toEnable] of Object.entries(state)) {
-        const sceneItem = sourceObjs[`cam_${name}`];
-        if (!sceneItem) continue;
+    await Promise.allSettled(
+        Object.entries(state).map(async ([name, toEnable]) => {
+            const sceneItem = sourceObjs[`cam_${name}`];
+            if (!sceneItem) return;
 
-        const isEnabled = (
-            await app?.call?.("GetSceneItemEnabled", {
+            const isEnabled = (
+                await app?.call?.("GetSceneItemEnabled", {
+                    sceneName: targetSceneName,
+                    sceneItemId: sceneItem.sceneItemId,
+                })
+            ).sceneItemEnabled;
+
+            // debug({
+            //     name,
+            //     toEnable,
+            //     isEnabled,
+            //     // sceneName: sceneItem.sourceName
+            // });
+
+            // 如果当前状态和目标状态一致，不执行
+            if (toEnable === isEnabled) return;
+
+            await app?.call?.("SetSceneItemEnabled", {
                 sceneName: targetSceneName,
                 sceneItemId: sceneItem.sceneItemId,
-            })
-        ).sceneItemEnabled;
+                sceneItemEnabled: toEnable,
+            });
 
-        // debug({
-        //     name,
-        //     toEnable,
-        //     isEnabled,
-        //     // sceneName: sceneItem.sourceName
-        // });
+            debug(`Scene %s changed to %s`, name, toEnable);
 
-        // 如果当前状态和目标状态一致，不执行
-        if (toEnable === isEnabled) continue;
+            // 如果更改的是“Control”摄像头，同时更改avatar的transform
+            if (name === "control" && sourceObjs.avatar) {
+                // const { positionY, height } = sourceObjs.avatar.sceneItemTransform;
+                const fromY =
+                    1440 -
+                    // Math.floor(height) -
+                    (!toEnable
+                        ? sourceObjs.cam_control.sceneItemTransform.height - 15
+                        : -1);
+                const newY =
+                    1440 -
+                    // Math.floor(height) -
+                    (toEnable
+                        ? sourceObjs.cam_control.sceneItemTransform.height - 15
+                        : -1);
 
-        await app?.call?.("SetSceneItemEnabled", {
-            sceneName: targetSceneName,
-            sceneItemId: sceneItem.sceneItemId,
-            sceneItemEnabled: toEnable,
-        });
+                debug(`Avatar Y transforming from %s to %s`, fromY, newY);
 
-        debug(`Scene %s changed to %s`, name, toEnable);
-
-        // 如果更改的是“Control”摄像头，同时更改avatar的transform
-        if (name === "control" && sourceObjs.avatar) {
-            // const { positionY, height } = sourceObjs.avatar.sceneItemTransform;
-            const fromY =
-                1440 -
-                // Math.floor(height) -
-                (!toEnable
-                    ? sourceObjs.cam_control.sceneItemTransform.height - 15
-                    : -1);
-            const newY =
-                1440 -
-                // Math.floor(height) -
-                (toEnable
-                    ? sourceObjs.cam_control.sceneItemTransform.height - 15
-                    : -1);
-
-            debug(`Avatar Y transforming from %s to %s`, fromY, newY);
-
-            await animate(
-                fromY,
-                newY,
-                300,
-                async (currentValue) =>
-                    await app?.call?.("SetSceneItemTransform", {
-                        sceneName: targetSceneName,
-                        sceneItemId: sourceObjs.avatar.sceneItemId,
-                        sceneItemTransform: {
-                            ...sourceObjs.avatar.sceneItemTransform,
-                            positionY: currentValue,
-                        },
-                    }),
-                Easing.Linear.Out
-            );
-        }
-    }
+                await animate(
+                    fromY,
+                    newY,
+                    300,
+                    async (currentValue) =>
+                        await app?.call?.("SetSceneItemTransform", {
+                            sceneName: targetSceneName,
+                            sceneItemId: sourceObjs.avatar.sceneItemId,
+                            sceneItemTransform: {
+                                ...sourceObjs.avatar.sceneItemTransform,
+                                positionY: currentValue,
+                            },
+                        }),
+                    Easing.Linear.Out
+                );
+            }
+        })
+    );
 }
 
 async function animate(
