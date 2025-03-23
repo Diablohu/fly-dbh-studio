@@ -3,6 +3,7 @@ import { MSFS_API, SystemEvents } from "msfs-simconnect-api-wrapper";
 
 import { retryInterval } from "../config.mjs";
 import { setCamState } from "../obs/index.mjs";
+import { broadcast } from "../websocket/index.mjs";
 
 // ============================================================================
 
@@ -13,6 +14,7 @@ export const app = new MSFS_API();
  * - 不是动态暂停
  */
 let pauseState = 0;
+let connected = false;
 
 // ============================================================================
 
@@ -60,6 +62,8 @@ async function simConnect1Sec() {
     );
 
     const state = {
+        connected,
+
         isGameplay: IS_GAMEPLAY,
         isOnRunway: vars.ON_ANY_RUNWAY === 1,
         isOnGround: IS_ON_GROUND,
@@ -125,9 +129,10 @@ async function simConnect1Sec() {
         }
     }
 
-    debug("%o", state);
+    // debug("%o", state);
 
     try {
+        broadcast("simconnect", state);
         await setCamState(state.overlay);
     } catch (e) {
         console.log(e);
@@ -173,8 +178,13 @@ async function connect() {
                 // 绑定事件
                 removeAppListeners.push(app.on(eventDefinition, eventHandler));
             });
+
+            connected = true;
         },
         onRetry: (_, interval) => {
+            connected = false;
+            broadcast("simconnect", { connected });
+
             for (const r of removeAppListeners) r?.();
             removeAppListeners = [];
             setCamState({ control: false, throttle: false, rudder: false });

@@ -25,6 +25,7 @@
         "dayjs": "^1.11.13",
         "debug": "^4.4.0",
         "express": "^4.21.2",
+        "express-ws": "^5.0.2",
         "less": "^4.2.2",
         "md5": "^2.3.0",
         "msfs-simconnect-api-wrapper": "^4.6.2",

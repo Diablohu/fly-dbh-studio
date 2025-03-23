@@ -1,0 +1,89 @@
+.page {
+    & > section.section {
+        margin-bottom: calc(var(--main-safety-edge) * 2);
+        h3 {
+            margin: var(--main-safety-edge) 0 0 0;
+            position: relative;
+            & > .state {
+                display: inline-block;
+                font-weight: normal;
+                font-size: smaller;
+                line-height: 1em;
+                padding: 0.35em 0.5em;
+                margin-left: 1em;
+                background: #888;
+                border-radius: 6px;
+                vertical-align: middle;
+                position: relative;
+                top: -2px;
+                &.is-pending {
+                    background-color: #444;
+                }
+                &.is-open {
+                    background-color: #080;
+                }
+                &.is-closed {
+                    background-color: #800;
+                }
+            }
+        }
+        .section-body {
+            margin-left: 1em;
+        }
+    }
+
+    .osb-states {
+        display: flex;
+        flex-flow: row nowrap;
+        margin: 1em 0 0 0;
+        align-items: center;
+        dt,
+        dd {
+            margin: 0;
+        }
+        .item {
+            display: inline-block;
+            width: 5em;
+            text-align: center;
+            background: #ffffff22;
+            margin-left: 1em;
+            line-height: 2em;
+            border-radius: 8px;
+            &.is-active {
+                background: #080;
+            }
+        }
+    }
+
+    .simconnect {
+        position: relative;
+        display: block;
+        & > section {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 30px;
+            margin: 1em 0 0 0;
+            .item {
+                display: flex;
+                margin: 0;
+                flex-flow: column wrap;
+                dt {
+                    margin: 0;
+                    order: 2;
+                }
+                dd {
+                    margin: 0;
+                    order: 1;
+                    font-size: 2em;
+                    font-style: italic;
+                    flex: 1;
+                }
+                &.is-not-active {
+                    dd {
+                        color: #444;
+                    }
+                }
+            }
+        }
+    }
+}

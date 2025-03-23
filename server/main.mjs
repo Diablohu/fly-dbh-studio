@@ -7,6 +7,7 @@ import debug from "debug";
 import { port } from "./config.mjs";
 import startObsServer from "./obs/index.mjs";
 import startSimConnectServer from "./sim-connect/index.mjs";
+import startWebSocketServer from "./websocket/index.mjs";
 
 // Configuration ==============================================================
 
@@ -32,13 +33,13 @@ debug.enable(
     ].join(",")
 );
 const apiServerDebug = debug("Server");
+const serverApp = express();
 
 await startObsServer();
 await startSimConnectServer();
+await startWebSocketServer(serverApp);
 
 await (async () => {
-    const serverApp = express();
-
     if (process.env.NODE_ENV === "production") {
         const astroServerModule = await import(fileUrl(astroServerEntryFile));
         // Change this based on your astro.config.mjs, `base` option.

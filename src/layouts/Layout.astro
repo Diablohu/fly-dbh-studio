@@ -33,9 +33,29 @@ const { showFrame = true, title } = Astro.props;
         {
             showFrame ? (
                 <div class="root">
-                    <aside>SIDE NAV HERE</aside>
+                    <aside>
+                        <h1>FLY-DBH Studio</h1>
+                        {[
+                            ["/", "HOME"],
+                            ["/flight-sim", "FLIGHT SIM"],
+                            // ["/stream-overlays/waiting-room", "WAITING ROOM"],
+                        ].map(([route, name]) => (
+                            <a
+                                href={route}
+                                class:list={{
+                                    "is-active": Astro.originPathname === route,
+                                }}
+                            >
+                                {name}
+                            </a>
+                        ))}
+                    </aside>
                     <main>
-                        {title && <header class="sticky-title"><h1>{title}</h1></header>}
+                        {title && (
+                            <header class="sticky-title">
+                                <h1>{title}</h1>
+                            </header>
+                        )}
                         <slot />
                     </main>
                 </div>

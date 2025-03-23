@@ -3,6 +3,7 @@ import { OBSWebSocket } from "obs-websocket-js";
 import { Easing } from "@tweenjs/tween.js";
 
 import { retryInterval } from "../config.mjs";
+import { broadcast } from "../websocket/index.mjs";
 
 // Configuration ==============================================================
 
@@ -17,12 +18,12 @@ const sourceObjs = Object.keys(sources).reduce((obj, key) => {
     obj[key] = undefined;
     return obj;
 }, {});
+let broadcastInterval;
 
 // ============================================================================
 
 export const debug = dbg("OBS");
 export const app = new OBSWebSocket();
-export const scenes = {};
 
 // ============================================================================
 
@@ -35,6 +36,8 @@ const connect = async () => {
         debug("Connected!");
 
         app.connected = true;
+        broadcast("obs", { connected: true });
+
         const { sceneItems } = await app.call("GetSceneItemList", {
             sceneName: targetSceneName,
         });
@@ -50,8 +53,34 @@ const connect = async () => {
 
         // debug(sourceObjs);
 
+        broadcastInterval = setInterval(async () => {
+            broadcast("obs", {
+                connected: true,
+                cam_control: (
+                    await app?.call?.("GetSceneItemEnabled", {
+                        sceneName: targetSceneName,
+                        sceneItemId: sourceObjs["cam_control"].sceneItemId,
+                    })
+                ).sceneItemEnabled,
+                cam_throttle: (
+                    await app?.call?.("GetSceneItemEnabled", {
+                        sceneName: targetSceneName,
+                        sceneItemId: sourceObjs["cam_throttle"].sceneItemId,
+                    })
+                ).sceneItemEnabled,
+                cam_rudder: (
+                    await app?.call?.("GetSceneItemEnabled", {
+                        sceneName: targetSceneName,
+                        sceneItemId: sourceObjs["cam_rudder"].sceneItemId,
+                    })
+                ).sceneItemEnabled,
+            });
+        }, 1_000);
+
         app.on("ConnectionClosed", () => {
+            if (broadcastInterval) clearInterval(broadcastInterval);
             app.connected = false;
+            broadcast("obs", { connected: false });
             setTimeout(connect, retryInterval * 1000);
         });
     } catch (err) {
