@@ -2,58 +2,9 @@ import dbg from "debug";
 import { MSFS_API, SystemEvents } from "msfs-simconnect-api-wrapper";
 
 import { retryInterval } from "../config.mjs";
-import {
-    // app as obsApp,
-    showHandCam as obsShowHandCam,
-    showNoHandCam as obsShowNoHandCam,
-} from "../obs/index.mjs";
+import { setCamState } from "../obs/index.mjs";
 
 // ============================================================================
-
-/* TODO: v2
-
-animate avatar position when toggling Left
-
-if Not Gameplay
-		Left				Hide
-		Right/Throttle		Hide
-		Right/Rudder		Hide
-else if On Runway
-	if Ground Speed > 5m/s || AIRSPEED_INDICATED > 20kt
-		Left				Show
-		Right/Throttle		Hide
-		Right/Rudder		Show
-	else
-		Left				Show
-		Right/Throttle		Show
-		Right/Rudder		Hide
-else if	On Ground
-	if Ground Speed > 10m/s
-		Left				Show
-		Right/Throttle		Hide
-		Right/Rudder		Show
-	else if Ground Speed > 2m/s
-		Left				Hide
-		Right/Throttle		Show
-		Right/Rudder		Hide
-	else
-		Left				Hide
-		Right/Throttle		Hide
-		Right/Rudder		Hide
-else // airborne
-	if AP ON || AGL >= 2000ft
-		Left				Hide
-		Right/Throttle		Hide
-		Right/Rudder		Hide
-	else if AGL >= 20ft
-		Left				Show
-		Right/Throttle		Show
-		Right/Rudder		Hide
-	else
-		Left				Show
-		Right/Throttle		Hide
-		Right/Rudder		Show
-*/
 
 export const debug = dbg("MSFS");
 export const app = new MSFS_API();
@@ -62,24 +13,6 @@ export const app = new MSFS_API();
  * - 不是动态暂停
  */
 let pauseState = 0;
-const states = {
-    // IS_SLEW_ACTIVE // 0 | 1
-    // ON_ANY_RUNWAY // 0 | 1
-    // SIM_ON_GROUND // 0 | 1
-    // AUTOPILOT_MASTER // 0 | 1
-    // GPS_GROUND_SPEED // Meters/Sec
-    // PLANE_ALT_ABOVE_GROUND // ft
-    // PLANE_ALT_ABOVE_GROUND_MINUS_CG // ft
-};
-// const varsToWatch = [
-//     "AUTOPILOT_MASTER",
-//     "GPS_GROUND_SPEED",
-//     "IS_SLEW_ACTIVE",
-//     "ON_ANY_RUNWAY",
-//     // "PLANE_ALT_ABOVE_GROUND",
-//     "PLANE_ALT_ABOVE_GROUND_MINUS_CG",
-//     "SIM_ON_GROUND",
-// ];
 
 // ============================================================================
 
@@ -98,10 +31,11 @@ async function simConnect1Sec() {
         // "PMDG_NG3_MCP_FDSw2",
         "AIRSPEED_INDICATED",
         "GPS_GROUND_SPEED",
+        "BRAKE_PARKING_POSITION", // boolean
         // "IS_SLEW_ACTIVE",
         // "IS_USER_SIM",
         "ON_ANY_RUNWAY",
-        // "PLANE_ALT_ABOVE_GROUND",
+        "PLANE_ALT_ABOVE_GROUND",
         "PLANE_ALT_ABOVE_GROUND_MINUS_CG",
         "SIM_ON_GROUND",
         "TITLE",
@@ -120,42 +54,81 @@ async function simConnect1Sec() {
         vars.ON_ANY_RUNWAY === 1 ||
         vars.SIM_ON_GROUND === 1 ||
         vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 0.5;
+    const AGL = Math.min(
+        vars.PLANE_ALT_ABOVE_GROUND,
+        vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG
+    );
 
-    // debug("%o", { ...vars, IS_GAMEPLAY, IS_ON_GROUND });
-    // debug("%o", { ...vars, IS_GAMEPLAY, IS_ON_GROUND });
-    debug("%o", {
+    const state = {
         isGameplay: IS_GAMEPLAY,
-        isOnAnyRunway: vars.ON_ANY_RUNWAY === 1,
+        isOnRunway: vars.ON_ANY_RUNWAY === 1,
         isOnGround: IS_ON_GROUND,
+        /** 指示空速，单位 `knot` */
+        IAS: vars.AIRSPEED_INDICATED,
+        /** 地速，单位 `m/s` */
         GS: vars.GPS_GROUND_SPEED,
-        AGL: vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG,
+        /** 离地高度，单位 `ft` */
+        AGL: AGL,
         AP: vars.AUTOPILOT_MASTER === 1,
-    });
+        ParkingBrake: [1, true].includes(vars.BRAKE_PARKING_POSITION),
+        overlay: {
+            control: false,
+            throttle: false,
+            rudder: false,
+        },
+    };
+
+    if (!state.isGameplay || state.ParkingBrake) {
+        state.overlay.control = false;
+        state.overlay.throttle = false;
+        state.overlay.rudder = false;
+    } else if (state.isOnRunway) {
+        if (state.GS >= 2.572 || state.IAS >= 5) {
+            state.overlay.control = true;
+            state.overlay.throttle = false;
+            state.overlay.rudder = true;
+        } else {
+            state.overlay.control = true;
+            state.overlay.throttle = true;
+            state.overlay.rudder = false;
+        }
+    } else if (state.isOnGround) {
+        if (state.GS >= 2.572) {
+            // 5kt
+            state.overlay.control = false;
+            state.overlay.throttle = false;
+            state.overlay.rudder = true;
+        } else if (state.GS >= 1.0288) {
+            // 2kt
+            state.overlay.control = false;
+            state.overlay.throttle = true;
+            state.overlay.rudder = false;
+        } else {
+            state.overlay.control = false;
+            state.overlay.throttle = false;
+            state.overlay.rudder = false;
+        }
+    } else {
+        // airborne
+        if (state.AP || state.AGL >= 2000) {
+            state.overlay.control = false;
+            state.overlay.throttle = false;
+            state.overlay.rudder = false;
+        } else if (state.AGL >= 20) {
+            state.overlay.control = true;
+            state.overlay.throttle = true;
+            state.overlay.rudder = false;
+        } else {
+            state.overlay.control = true;
+            state.overlay.throttle = false;
+            state.overlay.rudder = true;
+        }
+    }
+
+    debug("%o", state);
 
     try {
-        if (!IS_GAMEPLAY) return await obsShowNoHandCam();
-        if (vars.AUTOPILOT_MASTER === 1) return await obsShowNoHandCam();
-
-        if (vars.ON_ANY_RUNWAY === 1 && vars.GPS_GROUND_SPEED > 1)
-            return await obsShowHandCam();
-        if (IS_ON_GROUND && vars.GPS_GROUND_SPEED > 15)
-            return await obsShowHandCam();
-        if (!IS_ON_GROUND && vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 2000)
-            return await obsShowHandCam();
-
-        return await obsShowNoHandCam();
-        // console.log(
-        //     { obsScenes },
-        //     await obsApp.call("GetSceneItemEnabled", {
-        //         sceneName: obsTargetOverlayGroupName,
-        //         sceneItemId: obsScenes.withHandCam.sceneItemId,
-        //     })
-        // );
-        // await obsApp.call("SetSceneItemEnabled", {
-        //     sceneName: obsTargetOverlayGroupName,
-        //     sceneItemId: obsScenes.withHandCam.sceneItemId,
-        //     sceneItemEnabled: true,
-        // });
+        await setCamState(state.overlay);
     } catch (e) {
         console.log(e);
     }
@@ -204,7 +177,7 @@ async function connect() {
         onRetry: (_, interval) => {
             for (const r of removeAppListeners) r?.();
             removeAppListeners = [];
-            obsShowNoHandCam();
+            setCamState({ control: false, throttle: false, rudder: false });
 
             debug(`Connection failed: retrying in %o seconds.`, interval);
         },

@@ -1,20 +1,22 @@
 import dbg from "debug";
 import { OBSWebSocket } from "obs-websocket-js";
+import { Easing } from "@tweenjs/tween.js";
 
 import { retryInterval } from "../config.mjs";
 
 // Configuration ==============================================================
 
-/* TODO: v2
-
-* All sources in `[Overlay] MSFS`
-* Animate avatar position when toggling Left
-*/
-
-const targetSceneName = "MSFS／Gaming";
-export const targetOverlayGroupName = "MSFS Gaming Overlays Bottom";
-const sourceNameNoHandCam = "[Overlay] MSFS";
-const sourceNameWithHandCam = "[Overlay] MSFS with Control Cam";
+const targetSceneName = "[Overlay] MSFS";
+const sources = {
+    avatar: "Video Capture: Magewell USB VSeeFace",
+    cam_control: "FlightSim ControlCam Control",
+    cam_throttle: "FlightSim ControlCam Throttle",
+    cam_rudder: "FlightSim ControlCam Rudder",
+};
+const sourceObjs = Object.keys(sources).reduce((obj, key) => {
+    obj[key] = undefined;
+    return obj;
+}, {});
 
 // ============================================================================
 
@@ -33,21 +35,20 @@ const connect = async () => {
         debug("Connected!");
 
         app.connected = true;
-        const { sceneItems } = await app.call("GetGroupSceneItemList", {
-            sceneName: targetOverlayGroupName,
+        const { sceneItems } = await app.call("GetSceneItemList", {
+            sceneName: targetSceneName,
         });
         for (const scene of sceneItems) {
-            switch (scene.sourceName) {
-                case sourceNameNoHandCam: {
-                    scenes.noHandCam = scene;
-                    break;
+            Object.entries(sources).find(([key, value]) => {
+                if (value === scene.sourceName) {
+                    sourceObjs[key] = scene;
+                    return true;
                 }
-                case sourceNameWithHandCam: {
-                    scenes.withHandCam = scene;
-                    break;
-                }
-            }
+                return false;
+            });
         }
+
+        // debug(sourceObjs);
 
         app.on("ConnectionClosed", () => {
             app.connected = false;
@@ -63,36 +64,96 @@ const connect = async () => {
     }
 };
 
-async function showCam(sceneObj, name) {
+export async function setCamState(state) {
     // OBS WebSocket 未连接时，不执行
     if (!app.connected) return;
 
-    // 如果当前已显示，不执行
-    if (
-        (
+    for (const [name, toEnable] of Object.entries(state)) {
+        const sceneItem = sourceObjs[`cam_${name}`];
+        if (!sceneItem) continue;
+
+        const isEnabled = (
             await app?.call?.("GetSceneItemEnabled", {
-                sceneName: targetOverlayGroupName,
-                sceneItemId: sceneObj.sceneItemId,
+                sceneName: targetSceneName,
+                sceneItemId: sceneItem.sceneItemId,
             })
-        )?.sceneItemEnabled
-    )
-        return;
+        ).sceneItemEnabled;
 
-    await app?.call?.("SetSceneItemEnabled", {
-        sceneName: targetOverlayGroupName,
-        sceneItemId: sceneObj.sceneItemId,
-        sceneItemEnabled: true,
-    });
+        // debug({
+        //     name,
+        //     toEnable,
+        //     isEnabled,
+        //     // sceneName: sceneItem.sourceName
+        // });
 
-    debug("Switch to %o", name);
+        // 如果当前状态和目标状态一致，不执行
+        if (toEnable === isEnabled) continue;
+
+        await app?.call?.("SetSceneItemEnabled", {
+            sceneName: targetSceneName,
+            sceneItemId: sceneItem.sceneItemId,
+            sceneItemEnabled: toEnable,
+        });
+
+        debug(`Scene %s changed to %s`, name, toEnable);
+
+        // 如果更改的是“Control”摄像头，同时更改avatar的transform
+        if (name === "control" && sourceObjs.avatar) {
+            // const { positionY, height } = sourceObjs.avatar.sceneItemTransform;
+            const fromY =
+                1440 -
+                // Math.floor(height) -
+                (!toEnable
+                    ? sourceObjs.cam_control.sceneItemTransform.height - 15
+                    : -1);
+            const newY =
+                1440 -
+                // Math.floor(height) -
+                (toEnable
+                    ? sourceObjs.cam_control.sceneItemTransform.height - 15
+                    : -1);
+
+            debug(`Avatar Y transforming from %s to %s`, fromY, newY);
+
+            await animate(
+                fromY,
+                newY,
+                300,
+                async (currentValue) =>
+                    await app?.call?.("SetSceneItemTransform", {
+                        sceneName: targetSceneName,
+                        sceneItemId: sourceObjs.avatar.sceneItemId,
+                        sceneItemTransform: {
+                            ...sourceObjs.avatar.sceneItemTransform,
+                            positionY: currentValue,
+                        },
+                    }),
+                Easing.Linear.Out
+            );
+        }
+    }
 }
 
-export async function showHandCam() {
-    return await showCam(scenes.withHandCam, "HandCam");
-}
+async function animate(
+    startVal,
+    endVal,
+    duration,
+    onFrame = async () => {},
+    tweener = Easing.Linear.None
+) {
+    function getCurrentValue(currentTime) {
+        var delta = endVal - startVal;
+        var percentComplete = currentTime / duration;
+        return tweener(percentComplete) * delta + startVal;
+    }
 
-export async function showNoHandCam() {
-    return await showCam(scenes.noHandCam, "NoHandCam");
+    const startTime = Date.now();
+    let now = Date.now();
+
+    while (now - startTime < duration) {
+        await onFrame(getCurrentValue(now - startTime));
+        now = Date.now();
+    }
 }
 
 // ============================================================================

@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from "astro:transitions";
 import getPageTitle from "@/utils/get-page-title";
 import log from "@/utils/log";
 import "@/global.less";
@@ -26,15 +27,17 @@ const { showFrame = true, title } = Astro.props;
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="generator" content={Astro.generator} />
         <title>{getPageTitle(title)}</title>
+        <ClientRouter />
     </head>
     <body>
         {
             showFrame ? (
                 <div class="root">
-                    <aside />
-                    <maim>
+                    <aside>SIDE NAV HERE</aside>
+                    <main>
+                        {title && <header class="sticky-title"><h1>{title}</h1></header>}
                         <slot />
-                    </maim>
+                    </main>
                 </div>
             ) : (
                 <slot />
