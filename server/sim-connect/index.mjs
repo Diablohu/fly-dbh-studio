@@ -52,27 +52,25 @@ async function simConnect1Sec() {
             6, 7, 8,
             // 9, 10,
         ].includes(vars.CAMERA_STATE) && !pauseState;
-    const IS_ON_GROUND =
-        vars.ON_ANY_RUNWAY === 1 ||
-        vars.SIM_ON_GROUND === 1 ||
-        vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 0.5;
-    const AGL = Math.min(
-        vars.PLANE_ALT_ABOVE_GROUND,
-        vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG
-    );
 
     const state = {
         connected,
 
         isGameplay: IS_GAMEPLAY,
         isOnRunway: vars.ON_ANY_RUNWAY === 1,
-        isOnGround: IS_ON_GROUND,
+        isOnGround:
+            vars.ON_ANY_RUNWAY === 1 ||
+            vars.SIM_ON_GROUND === 1 ||
+            vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 0.5,
         /** 指示空速，单位 `knot` */
         IAS: vars.AIRSPEED_INDICATED,
         /** 地速，单位 `m/s` */
         GS: vars.GPS_GROUND_SPEED,
         /** 离地高度，单位 `ft` */
-        AGL: AGL,
+        AGL: Math.min(
+            vars.PLANE_ALT_ABOVE_GROUND,
+            vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG
+        ),
         AP: vars.AUTOPILOT_MASTER === 1,
         ParkingBrake: [1, true].includes(vars.BRAKE_PARKING_POSITION),
         overlay: {
@@ -87,17 +85,20 @@ async function simConnect1Sec() {
         state.overlay.throttle = false;
         state.overlay.rudder = false;
     } else if (state.isOnRunway) {
+        state.overlay.control = true;
         if (state.GS >= 2.572 || state.IAS >= 5) {
-            state.overlay.control = true;
             state.overlay.throttle = false;
             state.overlay.rudder = true;
         } else {
-            state.overlay.control = true;
             state.overlay.throttle = true;
             state.overlay.rudder = false;
         }
     } else if (state.isOnGround) {
-        if (state.GS >= 2.572) {
+        if (state.GS >= 15.432 || state.IAS >= 30) {
+            state.overlay.control = true;
+            state.overlay.throttle = false;
+            state.overlay.rudder = true;
+        } else if (state.GS >= 2.572) {
             // 5kt
             state.overlay.control = false;
             state.overlay.throttle = false;
