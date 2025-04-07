@@ -2,6 +2,7 @@ import dbg from "debug";
 import { MSFS_API, SystemEvents } from "msfs-simconnect-api-wrapper";
 
 import { retryInterval } from "../config.mjs";
+import { get as getSetting } from "../settings.mjs";
 import { setCamState } from "../obs/index.mjs";
 import { broadcast } from "../websocket/index.mjs";
 
@@ -86,7 +87,8 @@ async function simConnect1Sec() {
         state.overlay.rudder = false;
     } else if (state.isOnRunway) {
         state.overlay.control = true;
-        if (state.GS >= 2.572 || state.IAS >= 5) {
+        // 5 knots = 2.572 m/s
+        if (state.GS >= 2.572) {
             state.overlay.throttle = false;
             state.overlay.rudder = true;
         } else {
@@ -94,7 +96,10 @@ async function simConnect1Sec() {
             state.overlay.rudder = false;
         }
     } else if (state.isOnGround) {
-        if (state.GS >= 15.432 || state.IAS >= 30) {
+        // 30 knots = 15.432 m/s
+        // 5 knots = 2.572 m/s
+        // 2 knots = 1.0288 m/s
+        if (state.GS >= 15.432) {
             state.overlay.control = true;
             state.overlay.throttle = false;
             state.overlay.rudder = true;
@@ -134,7 +139,10 @@ async function simConnect1Sec() {
 
     try {
         broadcast("simconnect", state);
-        await setCamState(state.overlay);
+        if (await getSetting("autoToggleCams")) {
+            // debug("autoToggleCams", await getSetting("autoToggleCams"));
+            await setCamState(state.overlay);
+        }
     } catch (e) {
         console.log(e);
     }

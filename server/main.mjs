@@ -27,12 +27,13 @@ debug.enable(
         "OBS",
         "MSFS",
         "Server",
+        "WebSocket",
         "obs-websocket-js:*",
         "FLY-DBH Studio",
         // "node-simconnect",
     ].join(",")
 );
-const apiServerDebug = debug("Server");
+export const apiServerDebug = debug("Server");
 const serverApp = express();
 
 await startObsServer();

@@ -133,19 +133,32 @@ export async function setCamState(state) {
 
             // 如果更改的是“Control”摄像头，同时更改avatar的transform
             if (name === "control" && sourceObjs.avatar) {
+                // const camControlTransform = await app?.call?.(
+                //     "GetSceneItemTransform",
+                //     {
+                //         sceneName: targetSceneName,
+                //         sceneItemId: sourceObjs.cam_control.sceneItemId,
+                //     }
+                // );
+                // const camControlHeight =
+                //     camControlTransform.sceneItemTransform.height;
+                const camControlHeight = 399;
+                const avatarTransform = await app?.call?.(
+                    "GetSceneItemTransform",
+                    {
+                        sceneName: targetSceneName,
+                        sceneItemId: sourceObjs.avatar.sceneItemId,
+                    }
+                );
                 // const { positionY, height } = sourceObjs.avatar.sceneItemTransform;
                 const fromY =
                     1440 -
                     // Math.floor(height) -
-                    (!toEnable
-                        ? sourceObjs.cam_control.sceneItemTransform.height - 15
-                        : -1);
+                    (!toEnable ? camControlHeight - 15 : -1);
                 const newY =
                     1440 -
                     // Math.floor(height) -
-                    (toEnable
-                        ? sourceObjs.cam_control.sceneItemTransform.height - 15
-                        : -1);
+                    (toEnable ? camControlHeight - 15 : -1);
 
                 debug(`Avatar Y transforming from %s to %s`, fromY, newY);
 
@@ -158,7 +171,7 @@ export async function setCamState(state) {
                             sceneName: targetSceneName,
                             sceneItemId: sourceObjs.avatar.sceneItemId,
                             sceneItemTransform: {
-                                ...sourceObjs.avatar.sceneItemTransform,
+                                ...avatarTransform,
                                 positionY: currentValue,
                             },
                         }),

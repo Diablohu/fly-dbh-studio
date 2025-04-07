@@ -2,11 +2,15 @@ import {
     useEffect,
     useRef,
     useState,
+    useCallback,
     type FC,
     type PropsWithChildren,
+    type ChangeEventHandler,
+    type MouseEventHandler,
 } from "react";
 import classNames from "classnames";
 
+import { type FlightSimSettingsType, type WebSocketMessageType } from "@/types";
 import { baseURL } from "@/utils/request-api";
 import log from "@/utils/log";
 
@@ -47,7 +51,13 @@ type SimStateType = {
 
 const FlightSimPage = () => {
     const ClientRef = useRef<WebSocket>(null);
+    const LastSettingsRef = useRef<undefined | FlightSimSettingsType>(
+        undefined
+    );
 
+    const [settings, setSettings] = useState<FlightSimSettingsType>({
+        autoToggleCams: true,
+    });
     const [clientState, setClientState] = useState<
         "pending" | "closed" | "open"
     >("pending");
@@ -57,6 +67,73 @@ const FlightSimPage = () => {
     const [simState, setSimState] = useState<Partial<SimStateType>>({
         connected: false,
     });
+
+    const updateSettingAutoToggleScenes = useCallback<
+        ChangeEventHandler<HTMLInputElement>
+    >(
+        (evt) => {
+            setSettings((settings) => ({
+                ...settings,
+                autoToggleCams: evt.target.checked,
+            }));
+        },
+        [setSettings]
+    );
+
+    const toggleCam = useCallback<MouseEventHandler<HTMLSpanElement>>((evt) => {
+        if (!ClientRef.current) return;
+
+        const camName = evt.currentTarget.dataset.cam;
+        if (!camName) return;
+
+        const currState = JSON.parse(
+            evt.currentTarget.dataset.state || "false"
+        ) as boolean;
+
+        log("Toggle cam %s => %O", camName, !currState);
+
+        ClientRef.current.send(
+            JSON.stringify({
+                type: "ToggleCam",
+                payload: {
+                    type: camName,
+                    show: !currState,
+                },
+            })
+        );
+    }, []);
+
+    useEffect(() => {
+        if (typeof LastSettingsRef.current === "undefined") {
+            LastSettingsRef.current = settings;
+            return;
+        }
+
+        if (!ClientRef.current) return;
+
+        const valuesChanged = Object.entries(settings).reduce<
+            Partial<FlightSimSettingsType>
+        >((acc, [key, value]) => {
+            const lastValue = (LastSettingsRef.current ?? {})[
+                key as keyof FlightSimSettingsType
+            ];
+            if (lastValue !== value) {
+                acc[key as keyof FlightSimSettingsType] = value;
+            }
+            return acc;
+        }, {});
+
+        log("Changed settings %O", valuesChanged);
+
+        ClientRef.current.send(
+            JSON.stringify({
+                type: "UpdateSettings",
+                payload: valuesChanged,
+            })
+        );
+
+        LastSettingsRef.current = settings;
+    }, [settings]);
 
     useEffect(() => {
         log(`${baseURL}/ws`);
@@ -105,7 +182,16 @@ const FlightSimPage = () => {
 
     return (
         <div className={styles["page"]}>
-            <Section title="WebSocket" state={clientState} />
+            <Section title="WebSocket" state={clientState}>
+                <label>
+                    <input
+                        type="checkbox"
+                        defaultChecked={settings.autoToggleCams}
+                        onChange={updateSettingAutoToggleScenes}
+                    />{" "}
+                    Auto-change Scenes
+                </label>
+            </Section>
             <Section title="OBS" state={obsState.connected}>
                 {[
                     [
@@ -129,18 +215,20 @@ const FlightSimPage = () => {
                         string,
                         { control: boolean; throttle: boolean; rudder: boolean }
                     ];
+                    const togglable =
+                        name === "当前状态" && !settings.autoToggleCams;
                     return (
                         <dl className={styles["osb-states"]} key={name}>
                             <dt>{name}</dt>
                             <dd>
                                 {[
-                                    ["控制面", states.control],
-                                    ["油门", states.throttle],
-                                    ["脚跺", states.rudder],
-                                ].map((item) => {
-                                    const [name, state] = item as [
+                                    ["控制面", "control"],
+                                    ["油门", "throttle"],
+                                    ["脚跺", "rudder"],
+                                ].map((camItem) => {
+                                    const [name, camName] = camItem as [
                                         string,
-                                        boolean
+                                        keyof Exclude<(typeof item)[0], string>
                                     ];
                                     return (
                                         <span
@@ -148,9 +236,21 @@ const FlightSimPage = () => {
                                                 styles["item"],
                                                 {
                                                     [styles["is-active"]]:
-                                                        state === true,
+                                                        states[camName] ===
+                                                        true,
+                                                    [styles["is-togglable"]]:
+                                                        togglable,
                                                 },
                                             ])}
+                                            data-cam={camName}
+                                            data-state={JSON.stringify(
+                                                states[camName] === true
+                                            )}
+                                            onClick={
+                                                togglable
+                                                    ? toggleCam
+                                                    : undefined
+                                            }
                                         >
                                             {name}
                                         </span>
@@ -198,7 +298,7 @@ const FlightSimPage = () => {
                                 <SimStateItem
                                     title="指示空速"
                                     value={simState["IAS"]}
-                                    unit="knot"
+                                    unit="kt"
                                     decimal={0}
                                 />
                                 <SimStateItem
@@ -209,8 +309,12 @@ const FlightSimPage = () => {
                                 />
                                 <SimStateItem
                                     title="离地高度"
-                                    value={simState["AGL"]}
-                                    unit="feet"
+                                    value={
+                                        typeof simState["AGL"] === "number"
+                                            ? Math.max(0, simState["AGL"])
+                                            : undefined
+                                    }
+                                    unit="ft"
                                     decimal={0}
                                 />
                             </section>
@@ -276,7 +380,7 @@ const Section: FC<
 const SimStateItem: FC<{
     title: string;
     value: unknown;
-    unit: "boolean" | "switch" | "knot" | "feet" | "m/s";
+    unit: "boolean" | "switch" | "kt" | "ft" | "m/s";
     decimal?: number;
 }> = ({ title, value, unit, decimal = 2 }) => {
     return (

@@ -1,4 +1,6 @@
 .page {
+    user-select: none;
+
     & > section.section {
         margin-bottom: calc(var(--main-safety-edge) * 2);
         h3 {
@@ -49,8 +51,32 @@
             margin-left: 1em;
             line-height: 2em;
             border-radius: 8px;
+            position: relative;
             &.is-active {
                 background: #080;
+            }
+            &.is-togglable {
+                cursor: pointer;
+                &::before {
+                    --outline-width: 2px;
+                    --outline-offset: 2px;
+                    content: " ";
+                    position: absolute;
+                    top: calc(
+                        var(--outline-width) * -1 - var(--outline-offset)
+                    );
+                    left: calc(
+                        var(--outline-width) * -1 - var(--outline-offset)
+                    );
+                    right: calc(
+                        var(--outline-width) * -1 - var(--outline-offset)
+                    );
+                    bottom: calc(
+                        var(--outline-width) * -1 - var(--outline-offset)
+                    );
+                    border: var(--outline-width) solid #ffffff22;
+                    border-radius: 12px;
+                }
             }
         }
     }
