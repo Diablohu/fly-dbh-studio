@@ -1,5 +1,7 @@
+import { appDefaults } from "../app.config.mjs";
+
 const currentSettings = {
-    autoToggleCams: true,
+    ...appDefaults,
 };
 
 export const update = async (type, value) => {

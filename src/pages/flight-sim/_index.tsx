@@ -13,6 +13,7 @@ import classNames from "classnames";
 import { type FlightSimSettingsType, type WebSocketMessageType } from "@/types";
 import { baseURL } from "@/utils/request-api";
 import log from "@/utils/log";
+import { appDefaults } from "@app";
 
 import styles from "./_index.module.less";
 
@@ -56,7 +57,7 @@ const FlightSimPage = () => {
     );
 
     const [settings, setSettings] = useState<FlightSimSettingsType>({
-        autoToggleCams: true,
+        ...appDefaults,
     });
     const [clientState, setClientState] = useState<
         "pending" | "closed" | "open"
