@@ -16,6 +16,8 @@ export const app = new MSFS_API();
  */
 let pauseState = 0;
 let connected = false;
+let lastSimState = {};
+let lastOverlayState = {};
 
 // ============================================================================
 
@@ -27,6 +29,14 @@ async function simConnect1Sec() {
     // 2024: https://docs.flightsimulator.com/msfs2024/html/6_Programming_APIs/SimVars/Simulation_Variables.htm
 
     const vars = await app.get(
+        "TITLE",
+        "CATEGORY", // Airplane, Helicopter, Boat, GroundVehicle, ControlTower, SimpleObject, Viewer
+        "CONTROLLABLE",
+
+        "CAMERA_STATE",
+        "SIM_ON_GROUND",
+        "ON_ANY_RUNWAY",
+
         "AUTOPILOT_MASTER",
         // "AUTOPILOT_DISENGAGED",
         // "PMDG_NG3_Data",
@@ -37,12 +47,8 @@ async function simConnect1Sec() {
         "BRAKE_PARKING_POSITION", // boolean
         // "IS_SLEW_ACTIVE",
         // "IS_USER_SIM",
-        "ON_ANY_RUNWAY",
         "PLANE_ALT_ABOVE_GROUND",
-        "PLANE_ALT_ABOVE_GROUND_MINUS_CG",
-        "SIM_ON_GROUND",
-        "TITLE",
-        "CAMERA_STATE"
+        "PLANE_ALT_ABOVE_GROUND_MINUS_CG"
     );
 
     const IS_GAMEPLAY =
@@ -54,7 +60,7 @@ async function simConnect1Sec() {
             // 9, 10,
         ].includes(vars.CAMERA_STATE) && !pauseState;
 
-    const state = {
+    const simState = {
         connected,
 
         isGameplay: IS_GAMEPLAY,
@@ -63,6 +69,7 @@ async function simConnect1Sec() {
             vars.ON_ANY_RUNWAY === 1 ||
             vars.SIM_ON_GROUND === 1 ||
             vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 0.5,
+
         /** 指示空速，单位 `knot` */
         IAS: vars.AIRSPEED_INDICATED,
         /** 地速，单位 `m/s` */
@@ -72,76 +79,89 @@ async function simConnect1Sec() {
             vars.PLANE_ALT_ABOVE_GROUND,
             vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG
         ),
+
         AP: vars.AUTOPILOT_MASTER === 1,
         ParkingBrake: [1, true].includes(vars.BRAKE_PARKING_POSITION),
-        overlay: {
-            control: false,
-            throttle: false,
-            rudder: false,
-        },
     };
+    const overlayState = {
+        control: false,
+        throttle: false,
+        rudder: false,
+    };
+    const overlayStateChanged = {};
 
-    if (!state.isGameplay || state.ParkingBrake) {
-        state.overlay.control = false;
-        state.overlay.throttle = false;
-        state.overlay.rudder = false;
-    } else if (state.isOnRunway) {
-        state.overlay.control = true;
+    if (!simState.isGameplay || simState.ParkingBrake) {
+        overlayState.control = false;
+        overlayState.throttle = false;
+        overlayState.rudder = false;
+    } else if (simState.isOnRunway) {
+        overlayState.control = true;
         // 5 knots = 2.572 m/s
-        if (state.GS >= 2.572) {
-            state.overlay.throttle = false;
-            state.overlay.rudder = true;
+        if (simState.GS >= 2.572) {
+            overlayState.throttle = false;
+            overlayState.rudder = true;
         } else {
-            state.overlay.throttle = true;
-            state.overlay.rudder = false;
+            overlayState.throttle = true;
+            overlayState.rudder = false;
         }
-    } else if (state.isOnGround) {
+    } else if (simState.isOnGround) {
         // 30 knots = 15.432 m/s
         // 5 knots = 2.572 m/s
         // 2 knots = 1.0288 m/s
-        if (state.GS >= 15.432) {
-            state.overlay.control = true;
-            state.overlay.throttle = false;
-            state.overlay.rudder = true;
-        } else if (state.GS >= 2.572) {
+        if (simState.GS >= 15.432) {
+            overlayState.control = true;
+            overlayState.throttle = false;
+            overlayState.rudder = true;
+        } else if (simState.GS >= 2.572) {
             // 5kt
-            state.overlay.control = false;
-            state.overlay.throttle = false;
-            state.overlay.rudder = true;
-        } else if (state.GS >= 1.0288) {
+            overlayState.control = false;
+            overlayState.throttle = false;
+            overlayState.rudder = true;
+        } else if (simState.GS >= 1.0288) {
             // 2kt
-            state.overlay.control = false;
-            state.overlay.throttle = true;
-            state.overlay.rudder = false;
+            overlayState.control = false;
+            overlayState.throttle = true;
+            overlayState.rudder = false;
         } else {
-            state.overlay.control = false;
-            state.overlay.throttle = false;
-            state.overlay.rudder = false;
+            overlayState.control = false;
+            overlayState.throttle = false;
+            overlayState.rudder = false;
         }
     } else {
         // airborne
-        if (state.AP || state.AGL >= 2000) {
-            state.overlay.control = false;
-            state.overlay.throttle = false;
-            state.overlay.rudder = false;
-        } else if (state.AGL >= 20) {
-            state.overlay.control = true;
-            state.overlay.throttle = true;
-            state.overlay.rudder = false;
+        if (simState.AP || simState.AGL >= 2000) {
+            overlayState.control = false;
+            overlayState.throttle = false;
+            overlayState.rudder = false;
+        } else if (simState.AGL >= 20) {
+            overlayState.control = true;
+            overlayState.throttle = true;
+            overlayState.rudder = false;
         } else {
-            state.overlay.control = true;
-            state.overlay.throttle = false;
-            state.overlay.rudder = true;
+            overlayState.control = true;
+            overlayState.throttle = false;
+            overlayState.rudder = true;
         }
     }
 
-    // debug("%o", state);
+    debug("%o", {
+        TITLE: vars.TITLE,
+        CATEGORY: vars.CATEGORY,
+        CONTROLLABLE: vars.CONTROLLABLE,
+    });
+
+    for (const [key, value] of Object.entries(overlayState)) {
+        if (value !== lastOverlayState[key]) overlayStateChanged[key] = value;
+    }
+
+    lastSimState = simState;
+    lastOverlayState = overlayState;
 
     try {
-        broadcast("simconnect", state);
+        broadcast("simconnect", { ...simState, overlay: overlayState });
         if (await getSetting("autoToggleCams")) {
             // debug("autoToggleCams", await getSetting("autoToggleCams"));
-            await setCamState(state.overlay);
+            await setCamState(overlayStateChanged);
         }
     } catch (e) {
         console.log(e);
