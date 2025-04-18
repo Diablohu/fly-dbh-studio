@@ -31,7 +31,7 @@ async function simConnect1Sec() {
     const vars = await app.get(
         "TITLE",
         "CATEGORY", // Airplane, Helicopter, Boat, GroundVehicle, ControlTower, SimpleObject, Viewer
-        "CONTROLLABLE",
+        // "CONTROLLABLE",
 
         "CAMERA_STATE",
         "SIM_ON_GROUND",
@@ -63,6 +63,9 @@ async function simConnect1Sec() {
     const simState = {
         connected,
 
+        title: vars.TITLE,
+        category: vars.CATEGORY,
+
         isGameplay: IS_GAMEPLAY,
         isOnRunway: vars.ON_ANY_RUNWAY === 1,
         isOnGround:
@@ -83,6 +86,7 @@ async function simConnect1Sec() {
         AP: vars.AUTOPILOT_MASTER === 1,
         ParkingBrake: [1, true].includes(vars.BRAKE_PARKING_POSITION),
     };
+    const simStateChanged = {};
     const overlayState = {
         control: false,
         throttle: false,
@@ -144,12 +148,14 @@ async function simConnect1Sec() {
         }
     }
 
-    debug("%o", {
-        TITLE: vars.TITLE,
-        CATEGORY: vars.CATEGORY,
-        CONTROLLABLE: vars.CONTROLLABLE,
-    });
+    // debug("%o", {
+    //     TITLE: vars.TITLE,
+    //     CATEGORY: vars.CATEGORY,
+    // });
 
+    for (const [key, value] of Object.entries(simState)) {
+        if (value !== lastSimState[key]) simStateChanged[key] = value;
+    }
     for (const [key, value] of Object.entries(overlayState)) {
         if (value !== lastOverlayState[key]) overlayStateChanged[key] = value;
     }
@@ -158,7 +164,7 @@ async function simConnect1Sec() {
     lastOverlayState = overlayState;
 
     try {
-        broadcast("simconnect", { ...simState, overlay: overlayState });
+        broadcast("simconnect", simState);
         if (await getSetting("autoToggleCams")) {
             // debug("autoToggleCams", await getSetting("autoToggleCams"));
             await setCamState(overlayStateChanged);

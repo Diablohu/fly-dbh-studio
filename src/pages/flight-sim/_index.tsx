@@ -30,16 +30,19 @@ type ObsState = {
 type SimStateType = {
     connected: boolean;
 
+    title: string;
+    category: string;
+
     isGameplay: boolean;
     isOnGround: boolean;
     isOnRunway: boolean;
 
-    AP: boolean;
-    ParkingBrake: boolean;
-
     IAS: number;
     GS: number;
     AGL: number;
+
+    AP: boolean;
+    ParkingBrake: boolean;
 
     overlay: {
         control: boolean;
@@ -165,11 +168,25 @@ const FlightSimPage = () => {
                 const data = JSON.parse(ev.data);
                 switch (data.type) {
                     case "obs": {
-                        setObsState(data.data as ObsState);
+                        setObsState((prev) => ({
+                            ...prev,
+                            ...(data.data as ObsState),
+                        }));
                         break;
                     }
                     case "simconnect": {
-                        setSimState(data.data as SimStateType);
+                        setSimState((prev) => ({
+                            ...prev,
+                            ...(data.data as SimStateType),
+                        }));
+                        break;
+                    }
+                    case "ping": {
+                        ClientRef.current?.send(
+                            JSON.stringify({
+                                type: "pong",
+                            })
+                        );
                         break;
                     }
                 }
@@ -252,6 +269,7 @@ const FlightSimPage = () => {
                                                     ? toggleCam
                                                     : undefined
                                             }
+                                            key={camName}
                                         >
                                             {name}
                                         </span>
@@ -266,6 +284,12 @@ const FlightSimPage = () => {
                 <div className={styles["simconnect"]}>
                     {clientState === "open" && (
                         <>
+                            <section className={styles["mod-full-width"]}>
+                                <SimStateItem
+                                    title={simState["category"] ?? "未知类型"}
+                                    value={simState["title"]}
+                                />
+                            </section>
                             <section>
                                 <SimStateItem
                                     title="正在游戏状态"
@@ -381,7 +405,7 @@ const Section: FC<
 const SimStateItem: FC<{
     title: string;
     value: unknown;
-    unit: "boolean" | "switch" | "kt" | "ft" | "m/s";
+    unit?: "boolean" | "switch" | "kt" | "ft" | "m/s";
     decimal?: number;
 }> = ({ title, value, unit, decimal = 2 }) => {
     return (
@@ -407,13 +431,14 @@ const SimStateItem: FC<{
                     ? value === true
                         ? "ON"
                         : "OFF"
-                    : `${
+                    : [
                           typeof value === "number"
                               ? value.toFixed(decimal)
                               : typeof value === "undefined"
                               ? "--"
-                              : value
-                      } ${unit}`}
+                              : value,
+                          unit,
+                      ].join(" ")}
             </dd>
         </dl>
     );
