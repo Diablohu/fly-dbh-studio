@@ -44,11 +44,9 @@ type SimStateType = {
     AP: boolean;
     ParkingBrake: boolean;
 
-    overlay: {
-        control: boolean;
-        throttle: boolean;
-        rudder: boolean;
-    };
+    overlayControl: boolean;
+    overlayThrottle: boolean;
+    overlayRudder: boolean;
 };
 
 // ============================================================================
@@ -223,9 +221,9 @@ const FlightSimPage = () => {
                     [
                         "目标状态",
                         {
-                            control: simState.overlay?.control || false,
-                            throttle: simState.overlay?.throttle || false,
-                            rudder: simState.overlay?.rudder || false,
+                            control: simState.overlayControl || false,
+                            throttle: simState.overlayThrottle || false,
+                            rudder: simState.overlayRudder || false,
                         },
                     ],
                 ].map((item) => {

@@ -164,7 +164,14 @@ async function simConnect1Sec() {
     lastOverlayState = overlayState;
 
     try {
-        broadcast("simconnect", simState);
+        broadcast("simconnect", {
+            ...simState,
+            ...Object.entries(overlayState).reduce((obj, [key, value]) => {
+                obj[`overlay${key.slice(0, 1).toUpperCase()}${key.slice(1)}`] =
+                    value;
+                return obj;
+            }, {}),
+        });
         if (await getSetting("autoToggleCams")) {
             // debug("autoToggleCams", await getSetting("autoToggleCams"));
             await setCamState(overlayStateChanged);
