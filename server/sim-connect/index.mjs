@@ -21,7 +21,7 @@ let lastSimState = {};
 let lastOverlayState = {};
 let thisFlightState = {
     title: "",
-    apEngaged: false,
+    apEngagedOnce: false,
 };
 
 // ============================================================================
@@ -139,7 +139,10 @@ async function simConnect1Sec() {
         }
     } else {
         // airborne
-        if (simState.AP || simState.AGL >= 2000) {
+        if (
+            simState.AP ||
+            (!thisFlightState.apEngagedOnce && simState.AGL >= 2000)
+        ) {
             overlayState.control = false;
             overlayState.throttle = false;
             overlayState.rudder = false;
@@ -173,7 +176,7 @@ async function simConnect1Sec() {
         if (value !== lastOverlayState[key]) overlayStateChanged[key] = value;
     }
     if (simStateChanged.AP === true) {
-        thisFlightState.apEngaged = true;
+        thisFlightState.apEngagedOnce = true;
     }
     if (
         simStateChanged.title &&
@@ -181,7 +184,7 @@ async function simConnect1Sec() {
     ) {
         thisFlightState = {
             title: simStateChanged.title,
-            apEngaged: false,
+            apEngagedOnce: false,
         };
     }
 
