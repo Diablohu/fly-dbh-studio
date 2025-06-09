@@ -13,11 +13,16 @@ export const app = new MSFS_API();
 /**
  * 当前是否为暂停状态
  * - 不是动态暂停
+ * - 如：暂停菜单
  */
 let pauseState = 0;
 let connected = false;
 let lastSimState = {};
 let lastOverlayState = {};
+let thisFlightState = {
+    title: "",
+    apEngaged: false,
+};
 
 // ============================================================================
 
@@ -38,7 +43,8 @@ async function simConnect1Sec() {
         "ON_ANY_RUNWAY",
 
         "AUTOPILOT_MASTER",
-        // "AUTOPILOT_DISENGAGED",
+        "AUTOPILOT_DISENGAGED",
+        "AUTOPILOT_AVAILABLE",
         // "PMDG_NG3_Data",
         // "PMDG_NG3_DATA_NAME",
         // "PMDG_NG3_MCP_FDSw2",
@@ -141,23 +147,42 @@ async function simConnect1Sec() {
             overlayState.control = true;
             overlayState.throttle = true;
             overlayState.rudder = false;
-        } else {
+        } else if (simState.AGL >= 0) {
             overlayState.control = true;
             overlayState.throttle = false;
             overlayState.rudder = true;
+        } else {
+            // if AGL value invalid, hide all controls
+            overlayState.control = false;
+            overlayState.throttle = false;
+            overlayState.rudder = false;
         }
     }
 
-    // debug("%o", {
-    //     TITLE: vars.TITLE,
-    //     CATEGORY: vars.CATEGORY,
-    // });
+    debug("%o", {
+        TITLE: vars.TITLE,
+        CATEGORY: vars.CATEGORY,
+        AUTOPILOT_DISENGAGED: vars.AUTOPILOT_DISENGAGED,
+        AUTOPILOT_AVAILABLE: vars.AUTOPILOT_AVAILABLE,
+    });
 
     for (const [key, value] of Object.entries(simState)) {
         if (value !== lastSimState[key]) simStateChanged[key] = value;
     }
     for (const [key, value] of Object.entries(overlayState)) {
         if (value !== lastOverlayState[key]) overlayStateChanged[key] = value;
+    }
+    if (simStateChanged.AP === true) {
+        thisFlightState.apEngaged = true;
+    }
+    if (
+        simStateChanged.title &&
+        simStateChanged.title !== thisFlightState.title
+    ) {
+        thisFlightState = {
+            title: simStateChanged.title,
+            apEngaged: false,
+        };
     }
 
     lastSimState = simState;
