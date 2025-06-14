@@ -66,6 +66,14 @@ async function simConnect1Sec() {
             // 9, 10,
         ].includes(vars.CAMERA_STATE) && !pauseState;
 
+    /**
+     * 当前是否正在跑道上
+     * - `ON_ANY_RUNWAY` 有时会锁死为 `1`，导致无法判断，故利用离地高度作为额外条件
+     */
+    const IS_ON_RUNWAY =
+        vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 20 &&
+        [1, true].includes(vars.ON_ANY_RUNWAY);
+
     const simState = {
         connected,
 
@@ -73,10 +81,10 @@ async function simConnect1Sec() {
         category: vars.CATEGORY,
 
         isGameplay: IS_GAMEPLAY,
-        isOnRunway: vars.ON_ANY_RUNWAY === 1,
+        isOnRunway: IS_ON_RUNWAY,
         isOnGround:
-            vars.ON_ANY_RUNWAY === 1 ||
-            vars.SIM_ON_GROUND === 1 ||
+            IS_ON_RUNWAY ||
+            [1, true].includes(vars.SIM_ON_GROUND) ||
             vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG < 0.5,
 
         /** 指示空速，单位 `knot` */
@@ -171,9 +179,6 @@ async function simConnect1Sec() {
     for (const [key, value] of Object.entries(overlayState)) {
         if (value !== lastOverlayState[key]) overlayStateChanged[key] = value;
     }
-    if (simStateChanged.AP === true) {
-        thisFlightState.apEngagedOnce = true;
-    }
     if (
         simStateChanged.title &&
         simStateChanged.title !== thisFlightState.title
@@ -183,15 +188,18 @@ async function simConnect1Sec() {
             apEngagedOnce: false,
         };
     }
+    if (simStateChanged.AP === true) {
+        thisFlightState.apEngagedOnce = true;
+    }
 
     lastSimState = simState;
     lastOverlayState = overlayState;
 
-    debug("%o", {
-        TITLE: vars.TITLE,
-        CATEGORY: vars.CATEGORY,
-        overlayState,
-    });
+    // debug("%o", {
+    //     TITLE: vars.TITLE,
+    //     CATEGORY: vars.CATEGORY,
+    //     overlayState,
+    // });
 
     try {
         broadcast("simconnect", {
