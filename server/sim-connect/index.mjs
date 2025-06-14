@@ -84,9 +84,12 @@ async function simConnect1Sec() {
         /** 地速，单位 `m/s` */
         GS: vars.GPS_GROUND_SPEED,
         /** 离地高度，单位 `ft` */
-        AGL: Math.min(
-            vars.PLANE_ALT_ABOVE_GROUND,
-            vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG
+        AGL: Math.max(
+            0,
+            Math.min(
+                vars.PLANE_ALT_ABOVE_GROUND,
+                vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG
+            )
         ),
 
         AP: vars.AUTOPILOT_MASTER === 1,
@@ -162,13 +165,6 @@ async function simConnect1Sec() {
         }
     }
 
-    debug("%o", {
-        TITLE: vars.TITLE,
-        CATEGORY: vars.CATEGORY,
-        AUTOPILOT_DISENGAGED: vars.AUTOPILOT_DISENGAGED,
-        AUTOPILOT_AVAILABLE: vars.AUTOPILOT_AVAILABLE,
-    });
-
     for (const [key, value] of Object.entries(simState)) {
         if (value !== lastSimState[key]) simStateChanged[key] = value;
     }
@@ -190,6 +186,12 @@ async function simConnect1Sec() {
 
     lastSimState = simState;
     lastOverlayState = overlayState;
+
+    debug("%o", {
+        TITLE: vars.TITLE,
+        CATEGORY: vars.CATEGORY,
+        overlayState,
+    });
 
     try {
         broadcast("simconnect", {
