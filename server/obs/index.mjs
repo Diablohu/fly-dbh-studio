@@ -31,7 +31,7 @@ const connect = async () => {
     try {
         /*const obs = */ await app.connect(
             "ws://127.0.0.1:4455",
-            "okYhFKkByp1AlSqO"
+            "r4m5vBhF5QiqllWl"
         );
         debug("Connected!");
 
