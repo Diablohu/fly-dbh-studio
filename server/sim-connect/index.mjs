@@ -50,11 +50,14 @@ async function simConnect1Sec() {
         // "PMDG_NG3_MCP_FDSw2",
         "AIRSPEED_INDICATED",
         "GPS_GROUND_SPEED",
+        // "VERTICAL_SPEED", // The current indicated vertical speed for the aircraft. (Feet per second)
         "BRAKE_PARKING_POSITION", // boolean
         // "IS_SLEW_ACTIVE",
         // "IS_USER_SIM",
         "PLANE_ALT_ABOVE_GROUND",
-        "PLANE_ALT_ABOVE_GROUND_MINUS_CG"
+        "PLANE_ALT_ABOVE_GROUND_MINUS_CG",
+
+        // "PLANE_TOUCHDOWN_NORMAL_VELOCITY"
     );
 
     const IS_GAMEPLAY =
@@ -99,9 +102,13 @@ async function simConnect1Sec() {
                 vars.PLANE_ALT_ABOVE_GROUND_MINUS_CG
             )
         ),
+        /** 垂直速度，单位 `ft/s` */
+        // VS: vars.VERTICAL_SPEED,
 
         AP: vars.AUTOPILOT_MASTER === 1,
         ParkingBrake: [1, true].includes(vars.BRAKE_PARKING_POSITION),
+
+        // touchdownRelativeVerticalSpeed: vars.PLANE_TOUCHDOWN_NORMAL_VELOCITY,
     };
     const simStateChanged = {};
     const overlayState = {
@@ -112,6 +119,12 @@ async function simConnect1Sec() {
     const overlayStateChanged = {};
 
     if (!simState.isGameplay || simState.ParkingBrake) {
+        overlayState.control = false;
+        overlayState.throttle = false;
+        overlayState.rudder = false;
+    } else if (vars.CATEGORY !== "Airplane") {
+        // 不是“固定翼”类型，隐藏所有
+        // TODO: 其他飞行器类型的逻辑
         overlayState.control = false;
         overlayState.throttle = false;
         overlayState.rudder = false;
@@ -229,7 +242,7 @@ async function connect() {
         autoReconnect: true,
         onConnect: (handle) => {
             debug("Connected!");
-            // debug("Connected!", Object.keys(SystemEvents));
+            debug("All Available System Events: ", Object.keys(SystemEvents));
 
             for (const r of removeAppListeners) r?.();
             removeAppListeners = [];

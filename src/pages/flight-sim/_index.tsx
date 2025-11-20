@@ -40,9 +40,12 @@ type SimStateType = {
     IAS: number;
     GS: number;
     AGL: number;
+    VS: number;
 
     AP: boolean;
     ParkingBrake: boolean;
+
+    touchdownRelativeVerticalSpeed: number;
 
     overlayControl: boolean;
     overlayThrottle: boolean;
@@ -340,7 +343,29 @@ const FlightSimPage = () => {
                                     unit="ft"
                                     decimal={0}
                                 />
+                                {/* <SimStateItem
+                                    title="垂直速度"
+                                    value={simState["VS"]}
+                                    unit="ft/s"
+                                    decimal={0}
+                                /> */}
                             </section>
+                            {/* <section>
+                                <SimStateItem
+                                    title="最近一次触地（相对地面）"
+                                    value={
+                                        typeof simState[
+                                            "touchdownRelativeVerticalSpeed"
+                                        ] === "number"
+                                            ? simState[
+                                                  "touchdownRelativeVerticalSpeed"
+                                              ] * 60
+                                            : undefined
+                                    }
+                                    unit="ft/min"
+                                    decimal={0}
+                                />
+                            </section> */}
                         </>
                     )}
                 </div>
@@ -403,7 +428,7 @@ const Section: FC<
 const SimStateItem: FC<{
     title: string;
     value: unknown;
-    unit?: "boolean" | "switch" | "kt" | "ft" | "m/s";
+    unit?: "boolean" | "switch" | "kt" | "ft" | "m/s" | "ft/s" | "ft/min";
     decimal?: number;
 }> = ({ title, value, unit, decimal = 2 }) => {
     return (
