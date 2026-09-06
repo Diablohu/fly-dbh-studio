@@ -16,37 +16,40 @@
         "up": "npm run astro:upgrade && npx --yes npm-check-updates -i"
     },
     "dependencies": {
-        "@astrojs/node": "^9.5.1",
-        "@astrojs/react": "^4.4.2",
-        "@nanostores/react": "^1.0.0",
+        "@astrojs/node": "^11.1.5",
+        "@astrojs/react": "^6.0.5",
+        "@nanostores/react": "^2.0.1",
         "@tweenjs/tween.js": "^25.0.0",
-        "astro": "^5.16.0",
-        "axios": "^1.13.2",
+        "astro": "^7.3.1",
+        "axios": "^1.20.0",
         "classnames": "^2.5.1",
-        "dayjs": "^1.11.19",
+        "dayjs": "^1.11.23",
         "debug": "^4.4.3",
-        "express": "^5.1.0",
+        "express": "^5.2.1",
         "express-ws": "^5.0.2",
-        "less": "^4.4.2",
+        "less": "^4.9.1",
         "md5": "^2.3.0",
         "msfs-simconnect-api-wrapper": "^4.7.0",
-        "nanostores": "^1.1.0",
+        "nanostores": "^1.5.3",
         "normalize.css": "^8.0.1",
         "numeral": "^2.0.6",
-        "obs-websocket-js": "^5.0.7",
-        "react": "^19.2.0",
-        "react-dom": "^19.2.0"
+        "obs-websocket-js": "^5.0.8",
+        "react": "^19.2.8",
+        "react-dom": "^19.2.8"
     },
     "devDependencies": {
-        "@types/express": "^5.0.5",
+        "@types/express": "^5.0.6",
         "@types/md5": "^2.3.6",
-        "@types/node": "^22.14.0",
+        "@types/node": "^26.4.1",
         "@types/numeral": "^2.0.5",
-        "@types/react": "^19.2.6",
-        "@types/react-dom": "^19.2.3",
+        "@types/react": "^19.2.18",
+        "@types/react-dom": "^19.2.7",
         "cross-env": "^10.1.0",
         "file-url": "^4.0.0",
         "node-windows": "^1.0.0-beta.8",
-        "nodemon": "^3.1.11"
+        "nodemon": "^3.1.14"
+    },
+    "allowScripts": {
+        "esbuild@0.28.2": true
     }
 }
