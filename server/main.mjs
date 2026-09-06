@@ -3,6 +3,7 @@ import path from "node:path";
 import express from "express";
 import fileUrl from "file-url";
 import debug from "debug";
+// import { EventLogger } from "node-windows";
 
 import { port } from "./config.mjs";
 import startObsServer from "./obs/index.mjs";
@@ -11,11 +12,13 @@ import startWebSocketServer from "./websocket/index.mjs";
 
 // Configuration ==============================================================
 
+// const log = new EventLogger("FLY-DBH Studio Server");
+
 // ============================================================================
 
 const astroServerEntryFile = path.resolve(
     import.meta.dirname,
-    "../dist/server/entry.mjs"
+    "../dist/server/entry.mjs",
 );
 
 if (!fs.existsSync(astroServerEntryFile)) {
@@ -31,13 +34,18 @@ debug.enable(
         "obs-websocket-js:*",
         "FLY-DBH Studio",
         // "node-simconnect",
-    ].join(",")
+    ].join(","),
 );
 export const apiServerDebug = debug("Server");
 const serverApp = express();
 
+// log.info("Starting OBS Server...");
 await startObsServer();
+
+// log.info("Starting SimConnect Server...");
 await startSimConnectServer();
+
+// log.info("Starting WebSocket Server...");
 await startWebSocketServer(serverApp);
 
 await (async () => {
@@ -49,7 +57,7 @@ await (async () => {
         const base = "/";
         serverApp.use(
             base,
-            express.static(path.resolve(import.meta.dirname, "../dist/client"))
+            express.static(path.resolve(import.meta.dirname, "../dist/client")),
         );
         serverApp.use(astroServerModule.handler);
     }

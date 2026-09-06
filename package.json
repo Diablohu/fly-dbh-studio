@@ -2,11 +2,15 @@
     "name": "fly-dbh-studio",
     "type": "module",
     "version": "0.0.1",
+    "engines": {
+        "node": "26.*"
+    },
     "scripts": {
         "dev": "node dev.mjs",
         "dev:astro": "astro dev",
         "dev:api": "nodemon ./server/main.mjs --watch",
         "build": "astro build",
+        "build:sea": "node --build-sea sea-config.json",
         "preview": "astro preview",
         "astro": "astro",
         "astro:upgrade": "npx @astrojs/upgrade",
@@ -46,8 +50,8 @@
         "@types/react-dom": "^19.2.7",
         "cross-env": "^10.1.0",
         "file-url": "^4.0.0",
-        "node-windows": "^1.0.0-beta.8",
-        "nodemon": "^3.1.14"
+        "nodemon": "^3.1.14",
+        "pkg": "^5.8.1"
     },
     "allowScripts": {
         "esbuild@0.28.2": true

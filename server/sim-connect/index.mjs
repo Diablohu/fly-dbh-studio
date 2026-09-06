@@ -228,7 +228,7 @@ async function simConnect1Sec() {
             await setCamState(overlayStateChanged);
         }
     } catch (e) {
-        console.log(e);
+        console.error(e);
     }
 }
 
